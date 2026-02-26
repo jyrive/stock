@@ -40,22 +40,40 @@ def print_score_table(scores, title="Scores"):
     print(f"\n{HEADER}")
     print(f"  {title}")
     print(HEADER)
-    print(f"  {'#':<5}{'Symbol':<9}{'Name':<32}{'Score':>7}{'ROE%':>8}"
-          f"{'EPS CAGR':>10}{'FCF Yld':>9}{'MoS%':>9}{'Price':>10}")
-    print(f"  {DIVIDER}")
+
+    # Header row
+    print(f"  {'#':<5}{'Symbol':<8}{'Name':<28}{'Score':>6}"
+          f"{'EPS':>5}{'ROE':>5}{'FCF':>5}"
+          f"{'ROE%':>7}{'D/E':>7}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}"
+          f"{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}")
+    print(f"  {'─' * 120}")
 
     for i, s in enumerate(scores, 1):
-        name = (s.get("name") or "?")[:30]
-        roe = f"{s['roe_pct']:.1f}%" if s.get("roe_pct") else "-"
-        cagr = f"{s['eps_cagr']:.1f}%" if s.get("eps_cagr") else "-"
-        fcf_y = f"{s['fcf_yield']:.1f}%" if s.get("fcf_yield") else "-"
-        mos = f"{s['margin_of_safety']:.1f}%" if s.get("margin_of_safety") else "-"
-        price = f"${s['current_price']:.2f}" if s.get("current_price") else "-"
+        name = (s.get("name") or "?")[:26]
         score = f"{s['buffett_score']:.1f}" if s.get("buffett_score") else "-"
+        eps_s = str(s.get("eps_score", "-"))
+        roe_s = str(s.get("roe_score", "-"))
+        fcf_s = str(s.get("fcf_score", "-"))
+        roe = f"{s['roe_pct']:.0f}%" if s.get("roe_pct") else "-"
+        de = f"{s['debt_to_equity']:.0f}" if s.get("debt_to_equity") is not None else "-"
+        cagr = f"{s['eps_cagr']:.1f}%" if s.get("eps_cagr") else "-"
+        fcf_b = f"{s['fcf_current_b']:.1f}" if s.get("fcf_current_b") is not None else "-"
+        fcf_y = f"{s['fcf_yield']:.1f}%" if s.get("fcf_yield") else "-"
+        mos = f"{s['margin_of_safety']:.1f}%" if s.get("margin_of_safety") is not None else "-"
+        uv = "✅" if s.get("undervalued") else "❌"
+        price = f"${s['current_price']:.2f}" if s.get("current_price") else "-"
+        pe = f"{s['trailing_pe']:.1f}" if s.get("trailing_pe") else "-"
 
-        print(f"  {i:<5}{s['symbol']:<9}{name:<32}{score:>7}{roe:>8}"
-              f"{cagr:>10}{fcf_y:>9}{mos:>9}{price:>10}")
+        print(f"  {i:<5}{s['symbol']:<8}{name:<28}{score:>6}"
+              f"{eps_s:>5}{roe_s:>5}{fcf_s:>5}"
+              f"{roe:>7}{de:>7}{cagr:>7}{fcf_b:>7}{fcf_y:>6}"
+              f"{mos:>8}{uv:>4}{price:>10}{pe:>7}")
 
+    # Legend
+    print(f"\n  EPS/ROE/FCF = sub-scores (0-100) | D/E = Debt-to-Equity | "
+          f"FCF$B = FCF in billions")
+    print(f"  FYld = FCF Yield | MoS% = Margin of Safety | UV = Undervalued | "
+          f"CAGR = EPS growth rate")
     print()
 
 
@@ -73,9 +91,10 @@ def print_ticker_history(symbol, history):
     print(f"  Sector: {latest.get('sector', 'N/A')} | Industry: {latest.get('industry', 'N/A')}")
     print(HEADER)
 
-    print(f"\n  {'Date':<14}{'Score':>8}{'EPS':>6}{'ROE':>6}{'FCF':>6}"
-          f"{'ROE%':>8}{'CAGR':>9}{'FCF Yld':>9}{'Price':>10}{'MoS%':>9}")
-    print(f"  {DIVIDER}")
+    print(f"\n  {'Date':<13}{'Score':>7}{'EPS':>5}{'ROE':>5}{'FCF':>5}"
+          f"{'ROE%':>7}{'D/E':>7}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}"
+          f"{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}")
+    print(f"  {'─' * 105}")
 
     prev_score = None
     for row in history:
@@ -83,11 +102,15 @@ def print_ticker_history(symbol, history):
         eps_s = str(row.get("eps_score", "-"))
         roe_s = str(row.get("roe_score", "-"))
         fcf_s = str(row.get("fcf_score", "-"))
-        roe_pct = f"{row['roe_pct']:.1f}%" if row.get("roe_pct") else "-"
+        roe_pct = f"{row['roe_pct']:.0f}%" if row.get("roe_pct") else "-"
+        de = f"{row['debt_to_equity']:.0f}" if row.get("debt_to_equity") is not None else "-"
         cagr = f"{row['eps_cagr']:.1f}%" if row.get("eps_cagr") else "-"
+        fcf_b = f"{row['fcf_current_b']:.1f}" if row.get("fcf_current_b") is not None else "-"
         fcf_y = f"{row['fcf_yield']:.1f}%" if row.get("fcf_yield") else "-"
         price = f"${row['current_price']:.2f}" if row.get("current_price") else "-"
-        mos = f"{row['margin_of_safety']:.1f}%" if row.get("margin_of_safety") else "-"
+        mos = f"{row['margin_of_safety']:.1f}%" if row.get("margin_of_safety") is not None else "-"
+        uv = "✅" if row.get("undervalued") else "❌"
+        pe = f"{row['trailing_pe']:.1f}" if row.get("trailing_pe") else "-"
 
         # Arrow indicator for score change
         arrow = ""
@@ -102,8 +125,9 @@ def print_ticker_history(symbol, history):
 
         score_str = f"{score:.1f}{arrow}"
 
-        print(f"  {row['scan_date']:<14}{score_str:>8}{eps_s:>6}{roe_s:>6}{fcf_s:>6}"
-              f"{roe_pct:>8}{cagr:>9}{fcf_y:>9}{price:>10}{mos:>9}")
+        print(f"  {row['scan_date']:<13}{score_str:>7}{eps_s:>5}{roe_s:>5}{fcf_s:>5}"
+              f"{roe_pct:>7}{de:>7}{cagr:>7}{fcf_b:>7}{fcf_y:>6}"
+              f"{mos:>8}{uv:>4}{price:>10}{pe:>7}")
 
         prev_score = score
 
@@ -116,6 +140,10 @@ def print_ticker_history(symbol, history):
         print(f"\n  Overall: {first:.1f} → {last:.1f}  ({direction} {abs(change):.1f} pts"
               f" over {len(history)} scans)")
 
+    print(f"\n  EPS/ROE/FCF = sub-scores (0-100) | D/E = Debt-to-Equity | "
+          f"FCF$B = FCF in billions")
+    print(f"  FYld = FCF Yield | MoS% = Margin of Safety | UV = Undervalued | "
+          f"CAGR = EPS growth rate")
     print()
 
 
