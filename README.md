@@ -15,6 +15,18 @@ Screens stocks on five Buffett fundamentals and assigns a weighted score (0–10
 
 Each stock gets a detailed breakdown plus a summary ranking.
 
+## Project Structure
+
+```
+buffett_screener.py        # CLI entry point
+tickers.txt                # Editable ticker list
+screener/
+├── __init__.py            # Package exports
+├── data.py                # Ticker loading + yfinance data fetching
+├── analysis.py            # EPS, ROE, FCF, and DCF analysis
+└── output.py              # Terminal display + JSON export
+```
+
 ## Setup
 
 ```bash
