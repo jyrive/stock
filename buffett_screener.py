@@ -72,6 +72,15 @@ def main():
     else:
         candidates = load_tickers()
 
+    # Interactive prompt if no tickers were resolved
+    if not candidates:
+        print("No tickers found in tickers.txt or command line.")
+        raw = input("Enter ticker(s) to analyze (comma or space separated): ").strip()
+        if not raw:
+            print("No tickers entered. Exiting.")
+            return
+        candidates = [t.upper().strip() for t in raw.replace(",", " ").split() if t.strip()]
+
     print("=" * 80)
     print("WARREN BUFFETT STYLE STOCK SCREENER")
     print("=" * 80)
