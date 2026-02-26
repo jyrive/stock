@@ -1,0 +1,85 @@
+# Buffett Screener - Ticker List
+# One ticker per line. Lines starting with # are comments.
+# Blank lines are ignored.
+
+# Technology
+AAPL
+MSFT
+GOOGL
+V
+MA
+ADBE
+CRM
+INTC
+CSCO
+TXN
+AVGO
+QCOM
+
+# Consumer / Retail
+KO
+PEP
+PG
+JNJ
+UNH
+MCD
+NKE
+COST
+WMT
+HD
+LOW
+SBUX
+CL
+
+# Financials
+BRK-B
+JPM
+BAC
+AXP
+MCO
+SPGI
+MMC
+CB
+TRV
+AFL
+
+# Healthcare
+ABBV
+LLY
+MRK
+TMO
+DHR
+ABT
+SYK
+MDT
+ISRG
+ZTS
+
+# Industrials
+HON
+UNP
+CAT
+DE
+GE
+MMM
+ITW
+EMR
+ROK
+
+# Communication / Media
+DIS
+CMCSA
+NFLX
+GOOG
+
+# Other
+AMT
+MSCI
+ICE
+FICO
+ODFL
+WST
+SHW
+ECL
+APD
+LIN
