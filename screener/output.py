@@ -1,6 +1,4 @@
-"""Output formatting: print results to terminal and save to JSON."""
-
-import json
+"""Output formatting: print results to terminal."""
 
 
 def print_results(results, top_n=20):

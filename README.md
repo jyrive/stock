@@ -205,8 +205,7 @@ Comma-separated tickers on a single line also work: `AAPL, MSFT, GOOGL`
 | Output | Description |
 |--------|-------------|
 | **Terminal** | Ranked results with per-stock breakdowns (EPS history, ROE trend, FCF, DCF valuation) and a summary table |
-| **buffett_results.json** | Full results in JSON for further analysis or integration |
-| **scores.db** | SQLite database with historical scores (date-based, same-day overwrites) |
+| **scores.db** | SQLite database with historical scores (date-based, same-day overwrites). Query with `python history.py`. |
 
 ### Example Output
 
@@ -264,7 +263,7 @@ screener/
 ├── roe.py                 # Return on equity & debt analysis
 ├── fcf.py                 # Free cash flow strength analysis
 ├── dcf.py                 # DCF intrinsic value calculation
-└── output.py              # Terminal display + JSON export
+└── output.py              # Terminal display formatting
 ```
 
 ## Requirements

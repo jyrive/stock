@@ -20,7 +20,6 @@ from screener import (
     analyze_free_cash_flow,
     calculate_dcf_intrinsic_value,
     print_results,
-    save_results,
 )
 from screener.db import save_scores
 
@@ -97,7 +96,6 @@ def main():
     results.sort(key=lambda x: x["buffett_score"], reverse=True)
 
     print_results(results)
-    save_results(results)
 
     # Save to local SQLite database
     saved = save_scores(results)
