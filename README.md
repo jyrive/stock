@@ -75,7 +75,22 @@ python discover.py fcf_machines     # Mid+ cap, ROE >15%, margins >20%, current 
 python discover.py --list           # Show all presets with descriptions
 ```
 
-### 3. Typical Workflow
+### 3. Browse Score History
+
+Every screening run saves scores to a local SQLite database (`scores.db`) with today's date. Re-running on the same day overwrites previous results.
+
+```bash
+python history.py                    # latest scores + biggest movers
+python history.py AAPL               # score history for a ticker
+python history.py AAPL MSFT GOOGL    # compare multiple tickers
+python history.py --dates            # list all scan dates
+python history.py --date 2026-02-27  # show all scores from a specific date
+python history.py --movers           # biggest score changes over time
+```
+
+Use this to spot stocks that **stand out at a specific moment** — a sudden score jump or drop tells you something changed, and you can investigate why.
+
+### 4. Typical Workflow
 
 ```
  ┌─────────────────────────────────────────────────┐
@@ -84,6 +99,7 @@ python discover.py --list           # Show all presets with descriptions
  │  3. python buffett_screener.py ACN LULU MNST    │ ← deep-score them
  │  4. Add winners to tickers.txt                  │ ← track going forward
  │  5. python buffett_screener.py                  │ ← re-rank full list
+ │  6. python history.py --movers                  │ ← spot changes over time
  └─────────────────────────────────────────────────┘
 ```
 
@@ -115,6 +131,7 @@ Comma-separated tickers on a single line also work: `AAPL, MSFT, GOOGL`
 |--------|-------------|
 | **Terminal** | Ranked results with per-stock breakdowns (EPS history, ROE trend, FCF, DCF valuation) and a summary table |
 | **buffett_results.json** | Full results in JSON for further analysis or integration |
+| **scores.db** | SQLite database with historical scores (date-based, same-day overwrites) |
 
 ### Example Output
 
@@ -160,10 +177,12 @@ Conservative Buffett-style defaults hardcoded in [screener/dcf.py](screener/dcf.
 ```
 buffett_screener.py        # CLI entry point — score & rank stocks
 discover.py                # Discovery scanner — find new candidates online
+history.py                 # Score history viewer — track changes over time
 tickers.txt                # Editable ticker list (one per line, # comments)
 screener/
 ├── __init__.py            # Package exports
 ├── data.py                # Ticker loading + yfinance data fetching
+├── db.py                  # SQLite score storage and queries
 ├── discovery.py           # Finviz screener integration
 ├── analysis.py            # Re-exports from analysis sub-modules
 ├── eps.py                 # EPS consistency & growth analysis

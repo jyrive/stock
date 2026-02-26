@@ -22,6 +22,7 @@ from screener import (
     print_results,
     save_results,
 )
+from screener.db import save_scores
 
 warnings.filterwarnings("ignore")
 
@@ -97,6 +98,10 @@ def main():
 
     print_results(results)
     save_results(results)
+
+    # Save to local SQLite database
+    saved = save_scores(results)
+    print(f"Scores saved to scores.db ({saved} stocks, date: {__import__('datetime').date.today()})")
 
     print(f"Total companies analyzed: {len(results)}")
     passing = sum(
