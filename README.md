@@ -25,6 +25,81 @@ The screener evaluates every stock on four Buffett fundamentals and assigns a we
 
 Each stock gets a detailed breakdown (EPS history, ROE trend, FCF streak, DCF intrinsic value) plus a summary ranking table.
 
+### Scoring Explained
+
+The **Buffett Score** (0–100) is a weighted sum of four sub-scores:
+
+$$\text{Buffett Score} = \text{EPS} \times 0.25 + \text{ROE} \times 0.25 + \text{FCF} \times 0.30 + \text{DCF} \times 0.20$$
+
+#### EPS Score (0–100) — Earnings Per Share Growth
+
+Measures whether the company grows earnings consistently year over year.
+
+| Component | How it's calculated | Points |
+|-----------|-------------------|--------|
+| **Consistency** | % of years where EPS grew vs. prior year (need ≥65% to pass) | Up to 50 |
+| **CAGR** | Compound Annual Growth Rate of EPS over all available years | Up to 50 (2.5 pts per 1% CAGR, capped at 20%+) |
+
+- **EPS CAGR** — the annualized growth rate. Example: CAGR of 12% means EPS grew ~12% per year on average.
+- **Consistent ✅/❌** — ✅ if EPS increased in at least 65% of year-over-year periods.
+
+#### ROE Score (0–100) — Return on Equity
+
+Measures how efficiently the company generates profit from shareholders' equity, adjusted for debt levels.
+
+| Component | How it's calculated | Points |
+|-----------|-------------------|--------|
+| **Current ROE level** | ROE >30%: 50 pts, >20%: 40, >15%: 30, >10%: 15 | Up to 50 |
+| **Debt/Equity** | D/E <150: 25 pts (reasonable), <200: 10 pts | Up to 25 |
+| **Consistency bonus** | ROE >15% in all historical years: 25 pts, >70% of years: 15 pts | Up to 25 |
+
+- **ROE%** — Net Income ÷ Shareholders' Equity × 100. Buffett looks for >15% sustained.
+- **D/E** — Debt-to-Equity ratio. Lower is better; <150 is considered reasonable.
+
+#### FCF Score (0–100) — Free Cash Flow
+
+Measures the actual cash a company generates after capital expenditures.
+
+| Component | How it's calculated | Points |
+|-----------|-------------------|--------|
+| **Positive FCF** | Current year FCF > 0 | 30 |
+| **Positive streak** | ≥4 consecutive years positive: 25 pts, ≥3 years: 15 pts | Up to 25 |
+| **Growing** | Most recent FCF > earliest FCF (over 3+ years) | 25 |
+| **FCF Yield** | FCF ÷ Market Cap × 100. >3%: 20 pts, >2%: 10 pts | Up to 20 |
+
+- **FCF (in $B)** — Free Cash Flow = Operating Cash Flow − Capital Expenditures.
+- **FCF Yield** — how much free cash the company generates relative to its market price. Higher = cheaper.
+- **Growing ✅/❌** — ✅ if FCF has grown from the earliest to the most recent year.
+
+#### DCF / Valuation (0 or 25) — Discounted Cash Flow
+
+A binary check: is the stock undervalued based on a conservative DCF model?
+
+| Metric | Meaning |
+|--------|---------|
+| **Intrinsic Value** | Estimated fair price per share based on projected future FCF discounted to today |
+| **MoS% (Margin of Safety)** | $(Intrinsic - Price) ÷ Intrinsic × 100$. Positive = undervalued. |
+| **Upside%** | $(Intrinsic ÷ Price - 1) × 100$. How much the stock could rise to reach fair value. |
+| **Undervalued ✅/❌** | ✅ if intrinsic value > current price × 1.15 (i.e., >15% margin of safety) |
+
+If undervalued → 25 points (× 0.20 weight = 5 pts to final score). Otherwise 0.
+
+### Summary Table Columns
+
+The summary table and history viewer use these abbreviations:
+
+| Column | Full Name | What It Tells You |
+|--------|-----------|-------------------|
+| **Score** | Buffett Score | Overall weighted score (0–100). Higher = more Buffett-like. |
+| **ROE%** | Return on Equity | Profitability per dollar of equity. >15% is good, >30% is excellent. |
+| **EPS CAGR** | EPS Compound Annual Growth Rate | Annualized earnings growth. >10% is strong. |
+| **FCF Yld** | Free Cash Flow Yield | Cash generation relative to market cap. >3% is attractive. |
+| **MoS%** | Margin of Safety | How cheap/expensive vs. DCF intrinsic value. Positive = bargain. |
+| **Underval** | Undervalued | ✅ if MoS >15%, meaning meaningful discount to intrinsic value. |
+| **EPS** | EPS Sub-Score | Component score (0–100) for earnings growth quality. |
+| **ROE** | ROE Sub-Score | Component score (0–100) for return on equity + debt. |
+| **FCF** | FCF Sub-Score | Component score (0–100) for free cash flow strength. |
+
 ---
 
 ## Usage
