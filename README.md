@@ -23,7 +23,11 @@ tickers.txt                # Editable ticker list
 screener/
 ├── __init__.py            # Package exports
 ├── data.py                # Ticker loading + yfinance data fetching
-├── analysis.py            # EPS, ROE, FCF, and DCF analysis
+├── analysis.py            # Re-exports from analysis sub-modules
+├── eps.py                 # EPS consistency & growth analysis
+├── roe.py                 # Return on equity & debt analysis
+├── fcf.py                 # Free cash flow strength analysis
+├── dcf.py                 # DCF intrinsic value calculation
 └── output.py              # Terminal display + JSON export
 ```
 
