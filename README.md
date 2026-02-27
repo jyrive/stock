@@ -97,6 +97,27 @@ python history.py --movers           # biggest score changes over time
 
 Use this to spot stocks that **stand out at a specific moment** — a sudden score jump or drop tells you something changed, and you can investigate why.
 
+### 4. Deep Dive — Manual Due-Diligence Checklist
+
+```bash
+python deepdive.py AAPL              # full checklist for one stock
+```
+
+Runs the analysis and prints a **tailored checklist** of what to research manually:
+
+1. Do you understand this business?
+2. Competitive advantage (moat) — what is the source?
+3. Earnings quality — are they real and sustainable?
+4. Balance sheet strength — with specific red flags highlighted
+5. Free cash flow — where does the cash go?
+6. Valuation — does the price offer margin of safety?
+7. Management quality — who runs it and are they honest?
+8. Risks to investigate — lawsuits, concentration, disruption
+9. Decision checklist — 8 yes/no questions before buying
+10. Research links — SEC filings, insider trading, analyst estimates
+
+Every section adapts to the stock's actual numbers (e.g. warns about high debt only if D/E is actually high).
+
 ### Typical Workflow
 
 ```
@@ -107,6 +128,7 @@ Use this to spot stocks that **stand out at a specific moment** — a sudden sco
  │  4. Add winners to tickers.txt                  │ ← track going forward
  │  5. python analyze.py                           │ ← re-rank full list
  │  6. python history.py --movers                  │ ← spot changes over time
+ │  7. python deepdive.py LULU                     │ ← manual due diligence
  └─────────────────────────────────────────────────┘
 ```
 
@@ -273,6 +295,7 @@ The detailed per-stock breakdown (printed above the summary table) also shows **
 screen.py                  # Step 1 — scan Finviz for candidates
 analyze.py                 # Step 2 — deep fundamental analysis
 history.py                 # Step 3 — browse score history
+deepdive.py                # Step 4 — manual due-diligence checklist
 tickers.txt                # Your tracked ticker list
 screener/
 ├── __init__.py            # Package exports
