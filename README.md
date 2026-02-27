@@ -237,7 +237,7 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 Both `analyze.py` and `history.py` print the same table:
 
 ```
-#  Symbol  Name  Score  EPS  ROE  FCF  ROE%  D/E  CAGR  FCF$B  FYld  IV$  MoS%  UV  Price  P/E
+#  Symbol  Name  Score  EPS  ROE  FCF  BAL  ROE%  D/E  CR  CAGR  FCF$B  FYld  GW%  IV$  MoS%  UV  Price  P/E
 ```
 
 | Column | Full Name | Meaning |
@@ -249,16 +249,21 @@ Both `analyze.py` and `history.py` print the same table:
 | **EPS** | EPS Sub-Score | Earnings consistency + growth (0–100) |
 | **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
 | **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
+| **BAL** | Balance Sheet Score | Liquidity, debt coverage, retained earnings, goodwill (0–100) |
 | **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
 | **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
+| **CR** | Current Ratio | Current Assets ÷ Current Liabilities. >1.5 is healthy |
 | **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS |
 | **FCF$B** | FCF in Billions | Current year Free Cash Flow |
 | **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
+| **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
 | **IV$** | Intrinsic Value | DCF-estimated fair share price |
 | **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = cheap |
 | **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
 | **Price** | Current Price | Market price at time of scan (Yahoo Finance) |
 | **P/E** | Price-to-Earnings | Share price ÷ trailing EPS |
+
+The detailed per-stock breakdown (printed above the summary table) also shows **Cash/Debt** ratio and **Retained Earnings** trend, which are part of the BAL score but not separate columns in the summary table.
 
 ---
 
