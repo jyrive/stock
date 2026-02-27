@@ -38,6 +38,11 @@ def _connect(db_path=None):
             fcf_current_b REAL,
             fcf_yield     REAL,
             fcf_growing   INTEGER,
+            balance_score INTEGER,
+            current_ratio REAL,
+            cash_to_debt  REAL,
+            retained_earnings_growing INTEGER,
+            goodwill_pct  REAL,
             intrinsic_value REAL,
             margin_of_safety REAL,
             undervalued   INTEGER,
@@ -53,6 +58,19 @@ def _connect(db_path=None):
         CREATE INDEX IF NOT EXISTS idx_scores_symbol
         ON scores (symbol)
     """)
+
+    # Migrate: add balance sheet columns if missing (for existing DBs)
+    existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(scores)").fetchall()}
+    for col, ctype in [
+        ("balance_score", "INTEGER"),
+        ("current_ratio", "REAL"),
+        ("cash_to_debt", "REAL"),
+        ("retained_earnings_growing", "INTEGER"),
+        ("goodwill_pct", "REAL"),
+    ]:
+        if col not in existing_cols:
+            conn.execute(f"ALTER TABLE scores ADD COLUMN {col} {ctype}")
+
     conn.commit()
     return conn
 
@@ -71,6 +89,7 @@ def save_scores(results, db_path=None):
         eps = r.get("eps_analysis", {})
         roe = r.get("roe_analysis", {})
         fcf = r.get("fcf_analysis", {})
+        bal = r.get("balance_analysis", {})
         dcf = r.get("dcf_analysis", {})
 
         rows.append((
@@ -92,6 +111,11 @@ def save_scores(results, db_path=None):
             fcf.get("fcf_current"),
             fcf.get("fcf_yield"),
             1 if fcf.get("fcf_growing") else 0,
+            bal.get("balance_score"),
+            bal.get("current_ratio"),
+            bal.get("cash_to_debt"),
+            1 if bal.get("retained_earnings_growing") else 0,
+            bal.get("goodwill_pct"),
             dcf.get("intrinsic_value"),
             dcf.get("margin_of_safety"),
             1 if dcf.get("undervalued") else 0,
@@ -105,9 +129,11 @@ def save_scores(results, db_path=None):
             eps_score, eps_cagr, eps_consistent,
             roe_score, roe_pct, debt_to_equity,
             fcf_score, fcf_current_b, fcf_yield, fcf_growing,
+            balance_score, current_ratio, cash_to_debt,
+            retained_earnings_growing, goodwill_pct,
             intrinsic_value, margin_of_safety, undervalued,
             buffett_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows)
     conn.commit()
     conn.close()

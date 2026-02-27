@@ -21,6 +21,7 @@ from screener import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,
+    analyze_balance_sheet,
     calculate_dcf_intrinsic_value,
     print_results,
 )
@@ -40,12 +41,14 @@ def screen_stock(ticker_symbol, index, total):
     eps = analyze_eps_growth(data)
     roe = analyze_roe(data)
     fcf = analyze_free_cash_flow(data)
+    bal = analyze_balance_sheet(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
 
     total_score = (
-        eps["eps_score"] * 0.25
-        + roe["roe_score"] * 0.25
-        + fcf["fcf_score"] * 0.30
+        eps["eps_score"] * 0.20
+        + roe["roe_score"] * 0.20
+        + fcf["fcf_score"] * 0.25
+        + bal["balance_score"] * 0.15
         + (25 if dcf["undervalued"] else 0) * 0.20
     )
 
@@ -60,6 +63,7 @@ def screen_stock(ticker_symbol, index, total):
         "eps_analysis": eps,
         "roe_analysis": roe,
         "fcf_analysis": fcf,
+        "balance_analysis": bal,
         "dcf_analysis": dcf,
         "buffett_score": round(total_score, 1),
     }

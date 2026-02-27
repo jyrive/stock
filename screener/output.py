@@ -10,11 +10,14 @@ def _fmt(row):
         "eps": str(row.get("eps_score", "-")),
         "roe": str(row.get("roe_score", "-")),
         "fcf": str(row.get("fcf_score", "-")),
+        "bal": str(row.get("balance_score", "-")),
         "roe_pct": f"{row['roe_pct']:.0f}%" if row.get("roe_pct") else "-",
         "de": f"{row['debt_to_equity']:.0f}" if row.get("debt_to_equity") is not None else "-",
+        "cr": f"{row['current_ratio']:.1f}" if row.get("current_ratio") is not None else "-",
         "cagr": f"{row['eps_cagr']:.1f}%" if row.get("eps_cagr") else "-",
         "fcf_b": f"{row['fcf_current_b']:.1f}" if row.get("fcf_current_b") is not None else "-",
         "fcf_y": f"{row['fcf_yield']:.1f}%" if row.get("fcf_yield") else "-",
+        "gw": f"{row['goodwill_pct']:.0f}%" if row.get("goodwill_pct") is not None else "-",
         "iv": f"${row['intrinsic_value']:.2f}" if row.get("intrinsic_value") else "-",
         "mos": f"{row['margin_of_safety']:.1f}%" if row.get("margin_of_safety") is not None else "-",
         "uv": "✅" if row.get("undervalued") else "❌",
@@ -23,23 +26,24 @@ def _fmt(row):
     }
 
 
-_DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}"
-             f"{'ROE%':>7}{'D/E':>7}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}"
+_DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}{'BAL':>5}"
+             f"{'ROE%':>7}{'D/E':>7}{'CR':>6}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}{'GW%':>5}"
              f"{'IV$':>10}{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}")
 
 
 def _data_line(f):
     """Format data columns from a _fmt() dict."""
-    return (f"{f['score']:>6}{f['eps']:>5}{f['roe']:>5}{f['fcf']:>5}"
-            f"{f['roe_pct']:>7}{f['de']:>7}{f['cagr']:>7}{f['fcf_b']:>7}{f['fcf_y']:>6}"
+    return (f"{f['score']:>6}{f['eps']:>5}{f['roe']:>5}{f['fcf']:>5}{f['bal']:>5}"
+            f"{f['roe_pct']:>7}{f['de']:>7}{f['cr']:>6}{f['cagr']:>7}{f['fcf_b']:>7}{f['fcf_y']:>6}{f['gw']:>5}"
             f"{f['iv']:>10}{f['mos']:>8}{f['uv']:>4}{f['price']:>10}{f['pe']:>7}")
 
 
 def print_legend():
     """Print the shared column legend."""
-    print(f"\n  EPS/ROE/FCF = sub-scores (0-100) | D/E = Debt-to-Equity | "
-          f"FCF$B = FCF in billions")
-    print(f"  FYld = FCF Yield | IV$ = DCF Intrinsic Value | MoS% = Margin of Safety")
+    print(f"\n  EPS/ROE/FCF/BAL = sub-scores (0-100) | D/E = Debt-to-Equity | "
+          f"CR = Current Ratio")
+    print(f"  FCF$B = FCF in billions | FYld = FCF Yield | GW% = Goodwill % of Assets")
+    print(f"  IV$ = DCF Intrinsic Value | MoS% = Margin of Safety")
     print(f"  UV = Undervalued (IV > Price × 1.15) | CAGR = EPS growth rate")
     print()
 
@@ -63,6 +67,9 @@ def flatten_result(r):
         "fcf_score": r["fcf_analysis"]["fcf_score"],
         "fcf_current_b": r["fcf_analysis"].get("fcf_current"),
         "fcf_yield": r["fcf_analysis"].get("fcf_yield"),
+        "balance_score": r["balance_analysis"]["balance_score"],
+        "current_ratio": r["balance_analysis"].get("current_ratio"),
+        "goodwill_pct": r["balance_analysis"].get("goodwill_pct"),
         "intrinsic_value": r["dcf_analysis"].get("intrinsic_value"),
         "margin_of_safety": r["dcf_analysis"].get("margin_of_safety"),
         "undervalued": r["dcf_analysis"].get("undervalued"),
@@ -145,6 +152,26 @@ def print_results(results, top_n=20):
         print(
             f"     Positive Streak: {fcf['fcf_positive_streak']} yrs | "
             f"Growing: {'✅' if fcf['fcf_growing'] else '❌'}"
+        )
+
+        # Balance Sheet
+        bal = r.get("balance_analysis", {})
+        print(f"\n  🏦 BALANCE SHEET HEALTH (Score: {bal.get('balance_score', 0)}/100)")
+        cr = bal.get("current_ratio")
+        cd = bal.get("cash_to_debt")
+        gw = bal.get("goodwill_pct")
+        re_grow = bal.get("retained_earnings_growing")
+        print(
+            f"     Current Ratio: {cr if cr else 'N/A'}"
+            f" {'✅' if cr and cr >= 1.5 else '⚠️' if cr and cr >= 1.0 else '❌' if cr else ''}"
+            f" | Cash/Debt: {cd if cd else 'N/A'}"
+            f" {'✅' if cd and cd >= 0.5 else '❌' if cd else ''}"
+        )
+        print(
+            f"     Retained Earnings Growing: "
+            f"{'✅' if re_grow else '❌' if re_grow is False else 'N/A'}"
+            f" | Goodwill % of Assets: {f'{gw}%' if gw is not None else 'N/A'}"
+            f" {'✅' if gw is not None and gw < 20 else '⚠️' if gw is not None and gw < 30 else '❌' if gw is not None else ''}"
         )
 
         # DCF

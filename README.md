@@ -30,7 +30,7 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 | 2 | **Durable competitive advantage (moat)** — brand, patents, switching costs, network effects | Sustained high ROE + high margins in screener are quantitative proxies for a moat. Source and durability require your judgment. | ⚠️ Proxy |
 | 3 | **Consistent earnings growth** — upward EPS over many years, not erratic | EPS consistency check (≥65% years growing) + CAGR scoring. | ✅ Covered |
 | 4 | **High return on equity** — ROE >15% sustained over time | Current ROE level + historical consistency bonus + D/E penalty. | ✅ Covered |
-| 5 | **Conservative debt** — can pay off debt from a few years of earnings | D/E ratio check (<150 = reasonable). Finviz preset also filters current ratio. | ✅ Covered |
+| 5 | **Conservative debt** — can pay off debt from a few years of earnings | D/E ratio check (<150 = reasonable). Cash/Debt ratio scored in balance sheet module. | ✅ Covered |
 | 6 | **Strong free cash flow** — business converts earnings into real cash | FCF streak, growth trend, and FCF yield scored. | ✅ Covered |
 | 7 | **Owner earnings** — net income + depreciation − capex − working capital changes | FCF (operating cash flow − capex) is a close approximation. Does not compute Buffett's exact owner earnings formula. | ⚠️ Approx |
 | 8 | **Intrinsic value & margin of safety** — buy only at a significant discount to fair value | 10-year DCF model with terminal value. Flags undervalued when IV > Price × 1.15. | ✅ Covered |
@@ -39,9 +39,10 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 | 11 | **Predictable earnings** — avoid cyclicals and turnarounds | EPS consistency ratio catches erratic earnings. Doesn't assess revenue stability or customer concentration. | ⚠️ Partial |
 | 12 | **High profit margins** — pricing power and operational efficiency | Finviz presets filter operating margin >15–20%. Analyzer doesn't score margins independently. | ⚠️ Partial |
 | 13 | **Dividends & shareholder returns** — cash returned via dividends and buybacks | Not analyzed. No dividend yield, payout ratio, or buyback tracking. | ❌ Not covered |
-| 14 | **Industry positioning** — long-term tailwinds, avoid commoditized sectors | Sector/industry labels shown. No automated industry-quality scoring. | ⚠️ Partial |
+| 14 | **Balance sheet strength** — liquidity, retained earnings, acquisition discipline | Current ratio, cash/debt, retained earnings trend, goodwill % of assets. | ✅ Covered |
+| 15 | **Industry positioning** — long-term tailwinds, avoid commoditized sectors | Sector/industry labels shown. No automated industry-quality scoring. | ⚠️ Partial |
 
-**Bottom line:** the tool handles steps 3–6, 8, and 10 quantitatively. Steps 1, 2, 9, and 13 require your own research. The rest are partially covered — the numbers are there, but interpreting them is up to you.
+**Bottom line:** the tool handles steps 3–6, 8, 10, and 14 quantitatively. Steps 1, 2, 9, and 13 require your own research. The rest are partially covered — the numbers are there, but interpreting them is up to you.
 
 ---
 
@@ -173,15 +174,16 @@ Followed by a summary table (identical in `analyze.py` and `history.py`):
 
 ### Buffett Score (0–100)
 
-Weighted sum of four sub-scores:
+Weighted sum of five sub-scores:
 
-$$\text{Score} = \text{EPS} \times 0.25 + \text{ROE} \times 0.25 + \text{FCF} \times 0.30 + \text{DCF} \times 0.20$$
+$$\text{Score} = \text{EPS} \times 0.20 + \text{ROE} \times 0.20 + \text{FCF} \times 0.25 + \text{BAL} \times 0.15 + \text{DCF} \times 0.20$$
 
 | Criteria | Weight | What It Measures |
-|----------|--------|-----------------|
-| **EPS Growth** | 25% | Consistent earnings growth over 4+ years |
-| **ROE** | 25% | Return on equity >15% with reasonable debt |
-| **Free Cash Flow** | 30% | Positive, growing FCF and FCF yield |
+|----------|--------|------------------|
+| **EPS Growth** | 20% | Consistent earnings growth over 4+ years |
+| **ROE** | 20% | Return on equity >15% with reasonable debt |
+| **Free Cash Flow** | 25% | Positive, growing FCF and FCF yield |
+| **Balance Sheet** | 15% | Liquidity, debt coverage, retained earnings, goodwill |
 | **Valuation (DCF)** | 20% | Margin of safety based on discounted cash flow |
 
 ### EPS Score (0–100)
@@ -220,6 +222,15 @@ Binary check: is the stock undervalued based on a conservative DCF model?
 | Discount rate | 10% |
 
 Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.20 = 5 pts to final score).
+
+### Balance Sheet Health (0–100)
+
+| Component | How It’s Calculated | Points |
+|-----------|---------------------|--------|
+| Current Ratio | ≥2.0: 25, ≥1.5: 20, ≥1.0: 10 | Up to 25 |
+| Cash / Debt | ≥1.0: 25, ≥0.5: 20, ≥0.25: 10 | Up to 25 |
+| Retained Earnings | Growing ≥75% of years: 25, growing overall: 15 | Up to 25 |
+| Goodwill % | <10%: 25, <20%: 15, <30%: 5 | Up to 25 |
 
 ### Table Columns
 
@@ -267,6 +278,7 @@ screener/
 ├── eps.py                 # EPS consistency & growth analysis
 ├── roe.py                 # Return on equity & debt analysis
 ├── fcf.py                 # Free cash flow strength analysis
+├── balance.py             # Balance sheet health analysis
 ├── dcf.py                 # DCF intrinsic value calculation
 └── output.py              # Shared table formatting
 ```
