@@ -86,19 +86,31 @@ If undervalued → 25 points (× 0.20 weight = 5 pts to final score). Otherwise 
 
 ### Summary Table Columns
 
-The summary table and history viewer use these abbreviations:
+Both `buffett_screener.py` and `history.py` print the same table with these columns:
+
+```
+#  Symbol  Name  Score  EPS  ROE  FCF  ROE%  D/E  CAGR  FCF$B  FYld  IV$  MoS%  UV  Price  P/E
+```
 
 | Column | Full Name | What It Tells You |
 |--------|-----------|-------------------|
-| **Score** | Buffett Score | Overall weighted score (0–100). Higher = more Buffett-like. |
-| **ROE%** | Return on Equity | Profitability per dollar of equity. >15% is good, >30% is excellent. |
-| **EPS CAGR** | EPS Compound Annual Growth Rate | Annualized earnings growth. >10% is strong. |
-| **FCF Yld** | Free Cash Flow Yield | Cash generation relative to market cap. >3% is attractive. |
-| **MoS%** | Margin of Safety | How cheap/expensive vs. DCF intrinsic value. Positive = bargain. |
-| **Underval** | Undervalued | ✅ if MoS >15%, meaning meaningful discount to intrinsic value. |
-| **EPS** | EPS Sub-Score | Component score (0–100) for earnings growth quality. |
-| **ROE** | ROE Sub-Score | Component score (0–100) for return on equity + debt. |
-| **FCF** | FCF Sub-Score | Component score (0–100) for free cash flow strength. |
+| **#** | Rank | Position in the ranking (sorted by Score, highest first) |
+| **Symbol** | Ticker Symbol | Stock ticker, e.g. AAPL |
+| **Name** | Company Name | Full company name (truncated to fit) |
+| **Score** | Buffett Score | Overall weighted score (0–100). Higher = more Buffett-like |
+| **EPS** | EPS Sub-Score | Component score (0–100) for earnings consistency and growth |
+| **ROE** | ROE Sub-Score | Component score (0–100) for return on equity + debt level |
+| **FCF** | FCF Sub-Score | Component score (0–100) for free cash flow strength |
+| **ROE%** | Return on Equity | Net Income ÷ Equity × 100. >15% is good, >30% is excellent |
+| **D/E** | Debt-to-Equity | Total Debt ÷ Equity. Lower is better; <150 is reasonable |
+| **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS. >10% is strong |
+| **FCF$B** | FCF in Billions | Current year Free Cash Flow in USD billions |
+| **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
+| **IV$** | DCF Intrinsic Value | Estimated fair share price from the DCF model |
+| **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = stock is cheap vs. fair value |
+| **UV** | Undervalued | ✅ if IV > Price × 1.15 (>15% margin of safety), otherwise ❌ |
+| **Price** | Current Price | Market price at time of scan (from Yahoo Finance) |
+| **P/E** | Price-to-Earnings | Share price ÷ trailing EPS. Lower = cheaper relative to earnings |
 
 ---
 

@@ -5,7 +5,7 @@ from .eps import analyze_eps_growth
 from .roe import analyze_roe
 from .fcf import analyze_free_cash_flow
 from .dcf import calculate_dcf_intrinsic_value
-from .output import print_results
+from .output import print_results, print_summary_table, print_legend, flatten_result
 
 __all__ = [
     "load_tickers",
@@ -15,4 +15,7 @@ __all__ = [
     "analyze_free_cash_flow",
     "calculate_dcf_intrinsic_value",
     "print_results",
+    "print_summary_table",
+    "print_legend",
+    "flatten_result",
 ]
