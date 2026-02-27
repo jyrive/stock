@@ -1,6 +1,12 @@
 # Buffett Stock Screener
 
-A Python tool that screens stocks against Warren Buffett's investment criteria and discovers new candidates from online screeners.
+A Python toolkit for finding and analyzing stocks using Warren Buffett's investment principles.
+
+- **Screen** — scan Finviz for candidates matching Buffett-style filters
+- **Analyze** — deep-score stocks on EPS growth, ROE, FCF, and DCF intrinsic value
+- **Track** — store scores in SQLite and spot changes over time
+
+---
 
 ## Quick Start
 
@@ -12,187 +18,100 @@ source .venv/bin/activate
 pip install yfinance pandas numpy finvizfinance
 ```
 
-## How It Works
+---
 
-The screener evaluates every stock on four Buffett fundamentals and assigns a weighted score (0–100):
+## Buffett's Method vs. This Tool
 
-| Criteria | Weight | What It Measures |
-|----------|--------|-----------------|
-| **EPS Growth** | 25% | Consistent earnings growth over 4+ years (CAGR) |
-| **ROE** | 25% | Return on equity >15% with reasonable debt-to-equity |
-| **Free Cash Flow** | 30% | Positive, growing FCF and FCF yield |
-| **Valuation (DCF)** | 20% | Margin of safety based on discounted cash flow |
+Warren Buffett's investment process has both quantitative (numbers) and qualitative (judgment) parts. This tool automates the quantitative side and flags where you still need to do your own thinking.
 
-Each stock gets a detailed breakdown (EPS history, ROE trend, FCF streak, DCF intrinsic value) plus a summary ranking table.
+| # | Buffett's Step | This Tool | Status |
+|---|---------------|-----------|--------|
+| 1 | **Understand the business** — only invest in what you understand | Shows sector/industry labels. *You* decide if you understand it. | ❌ Manual |
+| 2 | **Durable competitive advantage (moat)** — brand, patents, switching costs, network effects | Sustained high ROE + high margins in screener are quantitative proxies for a moat. Source and durability require your judgment. | ⚠️ Proxy |
+| 3 | **Consistent earnings growth** — upward EPS over many years, not erratic | EPS consistency check (≥65% years growing) + CAGR scoring. | ✅ Covered |
+| 4 | **High return on equity** — ROE >15% sustained over time | Current ROE level + historical consistency bonus + D/E penalty. | ✅ Covered |
+| 5 | **Conservative debt** — can pay off debt from a few years of earnings | D/E ratio check (<150 = reasonable). Finviz preset also filters current ratio. | ✅ Covered |
+| 6 | **Strong free cash flow** — business converts earnings into real cash | FCF streak, growth trend, and FCF yield scored. | ✅ Covered |
+| 7 | **Owner earnings** — net income + depreciation − capex − working capital changes | FCF (operating cash flow − capex) is a close approximation. Does not compute Buffett's exact owner earnings formula. | ⚠️ Approx |
+| 8 | **Intrinsic value & margin of safety** — buy only at a significant discount to fair value | 10-year DCF model with terminal value. Flags undervalued when IV > Price × 1.15. | ✅ Covered |
+| 9 | **Management quality** — honest, shareholder-oriented, good capital allocators | Not assessed. No insider ownership, tenure, or capital allocation analysis. | ❌ Manual |
+| 10 | **Reasonable price** — don't overpay even for a great business | P/E displayed. FCF yield calculated. Finviz preset filters P/E < 25. | ✅ Covered |
+| 11 | **Predictable earnings** — avoid cyclicals and turnarounds | EPS consistency ratio catches erratic earnings. Doesn't assess revenue stability or customer concentration. | ⚠️ Partial |
+| 12 | **High profit margins** — pricing power and operational efficiency | Finviz presets filter operating margin >15–20%. Analyzer doesn't score margins independently. | ⚠️ Partial |
+| 13 | **Dividends & shareholder returns** — cash returned via dividends and buybacks | Not analyzed. No dividend yield, payout ratio, or buyback tracking. | ❌ Not covered |
+| 14 | **Industry positioning** — long-term tailwinds, avoid commoditized sectors | Sector/industry labels shown. No automated industry-quality scoring. | ⚠️ Partial |
 
-### Scoring Explained
-
-The **Buffett Score** (0–100) is a weighted sum of four sub-scores:
-
-$$\text{Buffett Score} = \text{EPS} \times 0.25 + \text{ROE} \times 0.25 + \text{FCF} \times 0.30 + \text{DCF} \times 0.20$$
-
-#### EPS Score (0–100) — Earnings Per Share Growth
-
-Measures whether the company grows earnings consistently year over year.
-
-| Component | How it's calculated | Points |
-|-----------|-------------------|--------|
-| **Consistency** | % of years where EPS grew vs. prior year (need ≥65% to pass) | Up to 50 |
-| **CAGR** | Compound Annual Growth Rate of EPS over all available years | Up to 50 (2.5 pts per 1% CAGR, capped at 20%+) |
-
-- **EPS CAGR** — the annualized growth rate. Example: CAGR of 12% means EPS grew ~12% per year on average.
-- **Consistent ✅/❌** — ✅ if EPS increased in at least 65% of year-over-year periods.
-
-#### ROE Score (0–100) — Return on Equity
-
-Measures how efficiently the company generates profit from shareholders' equity, adjusted for debt levels.
-
-| Component | How it's calculated | Points |
-|-----------|-------------------|--------|
-| **Current ROE level** | ROE >30%: 50 pts, >20%: 40, >15%: 30, >10%: 15 | Up to 50 |
-| **Debt/Equity** | D/E <150: 25 pts (reasonable), <200: 10 pts | Up to 25 |
-| **Consistency bonus** | ROE >15% in all historical years: 25 pts, >70% of years: 15 pts | Up to 25 |
-
-- **ROE%** — Net Income ÷ Shareholders' Equity × 100. Buffett looks for >15% sustained.
-- **D/E** — Debt-to-Equity ratio. Lower is better; <150 is considered reasonable.
-
-#### FCF Score (0–100) — Free Cash Flow
-
-Measures the actual cash a company generates after capital expenditures.
-
-| Component | How it's calculated | Points |
-|-----------|-------------------|--------|
-| **Positive FCF** | Current year FCF > 0 | 30 |
-| **Positive streak** | ≥4 consecutive years positive: 25 pts, ≥3 years: 15 pts | Up to 25 |
-| **Growing** | Most recent FCF > earliest FCF (over 3+ years) | 25 |
-| **FCF Yield** | FCF ÷ Market Cap × 100. >3%: 20 pts, >2%: 10 pts | Up to 20 |
-
-- **FCF (in $B)** — Free Cash Flow = Operating Cash Flow − Capital Expenditures.
-- **FCF Yield** — how much free cash the company generates relative to its market price. Higher = cheaper.
-- **Growing ✅/❌** — ✅ if FCF has grown from the earliest to the most recent year.
-
-#### DCF / Valuation (0 or 25) — Discounted Cash Flow
-
-A binary check: is the stock undervalued based on a conservative DCF model?
-
-| Metric | Meaning |
-|--------|---------|
-| **Intrinsic Value** | Estimated fair price per share based on projected future FCF discounted to today |
-| **MoS% (Margin of Safety)** | $(Intrinsic - Price) ÷ Intrinsic × 100$. Positive = undervalued. |
-| **Upside%** | $(Intrinsic ÷ Price - 1) × 100$. How much the stock could rise to reach fair value. |
-| **Undervalued ✅/❌** | ✅ if intrinsic value > current price × 1.15 (i.e., >15% margin of safety) |
-
-If undervalued → 25 points (× 0.20 weight = 5 pts to final score). Otherwise 0.
-
-### Summary Table Columns
-
-Both `buffett_screener.py` and `history.py` print the same table with these columns:
-
-```
-#  Symbol  Name  Score  EPS  ROE  FCF  ROE%  D/E  CAGR  FCF$B  FYld  IV$  MoS%  UV  Price  P/E
-```
-
-| Column | Full Name | What It Tells You |
-|--------|-----------|-------------------|
-| **#** | Rank | Position in the ranking (sorted by Score, highest first) |
-| **Symbol** | Ticker Symbol | Stock ticker, e.g. AAPL |
-| **Name** | Company Name | Full company name (truncated to fit) |
-| **Score** | Buffett Score | Overall weighted score (0–100). Higher = more Buffett-like |
-| **EPS** | EPS Sub-Score | Component score (0–100) for earnings consistency and growth |
-| **ROE** | ROE Sub-Score | Component score (0–100) for return on equity + debt level |
-| **FCF** | FCF Sub-Score | Component score (0–100) for free cash flow strength |
-| **ROE%** | Return on Equity | Net Income ÷ Equity × 100. >15% is good, >30% is excellent |
-| **D/E** | Debt-to-Equity | Total Debt ÷ Equity. Lower is better; <150 is reasonable |
-| **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS. >10% is strong |
-| **FCF$B** | FCF in Billions | Current year Free Cash Flow in USD billions |
-| **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
-| **IV$** | DCF Intrinsic Value | Estimated fair share price from the DCF model |
-| **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = stock is cheap vs. fair value |
-| **UV** | Undervalued | ✅ if IV > Price × 1.15 (>15% margin of safety), otherwise ❌ |
-| **Price** | Current Price | Market price at time of scan (from Yahoo Finance) |
-| **P/E** | Price-to-Earnings | Share price ÷ trailing EPS. Lower = cheaper relative to earnings |
+**Bottom line:** the tool handles steps 3–6, 8, and 10 quantitatively. Steps 1, 2, 9, and 13 require your own research. The rest are partially covered — the numbers are there, but interpreting them is up to you.
 
 ---
 
 ## Usage
 
-### 1. Screen Stocks
+### 1. Screen — Find Candidates
 
-Run the screener against your tracked tickers in `tickers.txt`:
-
-```bash
-python buffett_screener.py
-```
-
-Screen specific tickers directly (no file needed):
+Scan Finviz for stocks matching Buffett-style filters. Shows candidates **not already in your `tickers.txt`**:
 
 ```bash
-python buffett_screener.py AAPL MSFT GOOGL V BRK-B
+python screen.py                     # default "buffett" preset
+python screen.py high_roe            # use a specific preset
+python screen.py --list              # show available presets
 ```
 
-Use a custom ticker file:
+#### Presets
+
+| Preset | Market Cap | Key Filters |
+|--------|-----------|-------------|
+| `buffett` | Large+ | ROE >15%, EPS growth, margins >15% |
+| `buffett_mega` | Mega (>$200B) | ROE >15%, margins >20% |
+| `growth_value` | Mid+ | ROE >15%, EPS growth >10%, P/E <25 |
+| `high_roe` | Mid+ | ROE >30% |
+| `fcf_machines` | Mid+ | ROE >15%, margins >20%, current ratio >1.5 |
+
+Output includes a ready-to-paste command to analyze the new candidates.
+
+### 2. Analyze — Deep-Score Stocks
+
+Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, and DCF:
 
 ```bash
-python buffett_screener.py my_watchlist.txt
+python analyze.py                    # analyze tickers from tickers.txt
+python analyze.py AAPL MSFT GOOGL    # analyze specific tickers
+python analyze.py my_watchlist.txt   # analyze tickers from a custom file
 ```
 
-If no tickers are found (empty file, no CLI args), you'll get an interactive prompt to type them in.
+If no tickers are provided, you'll get an interactive prompt.
 
-### 2. Discover New Candidates
+Results are saved to `scores.db` (SQLite) with today's date. Re-running on the same day overwrites previous results.
 
-Find stocks from Finviz that match Buffett-style filters but **aren't already in your `tickers.txt`**:
-
-```bash
-python discover.py
-```
-
-This scans Finviz, compares the results against your existing list, and shows:
-- Which matches you already track
-- **New candidates** you haven't seen yet
-- A ready-to-paste command to run the full screener on the new ones
-
-#### Discovery Presets
-
-```bash
-python discover.py buffett          # Default: large-cap, ROE >15%, EPS growth, margins >15%
-python discover.py buffett_mega     # Mega-caps >$200B, ROE >15%, margins >20%
-python discover.py growth_value     # Mid+ cap, ROE >15%, EPS growth >10%, P/E <25
-python discover.py high_roe         # Mid+ cap, ROE >30%
-python discover.py fcf_machines     # Mid+ cap, ROE >15%, margins >20%, current ratio >1.5
-python discover.py --list           # Show all presets with descriptions
-```
-
-### 3. Browse Score History
-
-Every screening run saves scores to a local SQLite database (`scores.db`) with today's date. Re-running on the same day overwrites previous results.
+### 3. Track — Browse Score History
 
 ```bash
 python history.py                    # latest scores + biggest movers
 python history.py AAPL               # score history for a ticker
 python history.py AAPL MSFT GOOGL    # compare multiple tickers
 python history.py --dates            # list all scan dates
-python history.py --date 2026-02-27  # show all scores from a specific date
+python history.py --date 2026-02-27  # show scores from a specific date
 python history.py --movers           # biggest score changes over time
 ```
 
 Use this to spot stocks that **stand out at a specific moment** — a sudden score jump or drop tells you something changed, and you can investigate why.
 
-### 4. Typical Workflow
+### Typical Workflow
 
 ```
  ┌─────────────────────────────────────────────────┐
- │  1. python discover.py high_roe                 │ ← find new candidates
+ │  1. python screen.py high_roe                   │ ← find new candidates
  │  2. Copy the suggested command from output      │
- │  3. python buffett_screener.py ACN LULU MNST    │ ← deep-score them
+ │  3. python analyze.py ACN LULU MNST             │ ← deep-score them
  │  4. Add winners to tickers.txt                  │ ← track going forward
- │  5. python buffett_screener.py                  │ ← re-rank full list
+ │  5. python analyze.py                           │ ← re-rank full list
  │  6. python history.py --movers                  │ ← spot changes over time
  └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Managing Your Ticker List
+## Ticker Management
 
 Edit `tickers.txt` — one ticker per line. Use `#` for comments and blank lines to organize by sector:
 
@@ -212,14 +131,9 @@ Comma-separated tickers on a single line also work: `AAPL, MSFT, GOOGL`
 
 ---
 
-## Output
+## Example Output
 
-| Output | Description |
-|--------|-------------|
-| **Terminal** | Ranked results with per-stock breakdowns (EPS history, ROE trend, FCF, DCF valuation) and a summary table |
-| **scores.db** | SQLite database with historical scores (date-based, same-day overwrites). Query with `python history.py`. |
-
-### Example Output
+Each stock gets a detailed per-stock breakdown:
 
 ```
 ──────────────────────────────────────────────────────────────────────
@@ -243,28 +157,107 @@ Comma-separated tickers on a single line also work: `AAPL, MSFT, GOOGL`
      Margin of Safety: -138.44% | Undervalued: ❌
 ```
 
+Followed by a summary table (identical in `analyze.py` and `history.py`):
+
+```
+#    Symbol  Name                         Score  EPS  ROE  FCF   ROE%    D/E   CAGR  FCF$B  FYld       IV$    MoS%  UV     Price    P/E
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1    ADBE    Adobe Inc.                    84.0   96  100  100    55%     57  18.2%    9.8  9.1%   $419.20   38.2%   ✅   $259.04   15.5
+2    CMCSA   Comcast Corporation           80.0  100   80  100    21%    108  64.5%   19.2 17.1%    $93.62   67.0%   ✅    $30.85    5.7
+3    V       Visa Inc.                     77.5   90  100  100    54%     55  16.0%   21.6  3.5%   $224.26  -41.2%   ❌   $316.70   29.8
+```
+
 ---
 
-## DCF Model Assumptions
+## Scoring Reference
 
-Conservative Buffett-style defaults hardcoded in [screener/dcf.py](screener/dcf.py):
+### Buffett Score (0–100)
+
+Weighted sum of four sub-scores:
+
+$$\text{Score} = \text{EPS} \times 0.25 + \text{ROE} \times 0.25 + \text{FCF} \times 0.30 + \text{DCF} \times 0.20$$
+
+| Criteria | Weight | What It Measures |
+|----------|--------|-----------------|
+| **EPS Growth** | 25% | Consistent earnings growth over 4+ years |
+| **ROE** | 25% | Return on equity >15% with reasonable debt |
+| **Free Cash Flow** | 30% | Positive, growing FCF and FCF yield |
+| **Valuation (DCF)** | 20% | Margin of safety based on discounted cash flow |
+
+### EPS Score (0–100)
+
+| Component | How It's Calculated | Points |
+|-----------|-------------------|--------|
+| Consistency | % of years where EPS grew vs. prior year (need ≥65%) | Up to 50 |
+| CAGR | Compound Annual Growth Rate (2.5 pts per 1%, capped at 20%) | Up to 50 |
+
+### ROE Score (0–100)
+
+| Component | How It's Calculated | Points |
+|-----------|-------------------|--------|
+| Current ROE | >30%: 50, >20%: 40, >15%: 30, >10%: 15 | Up to 50 |
+| Debt/Equity | D/E <150: 25 pts, <200: 10 pts | Up to 25 |
+| Consistency | ROE >15% all years: 25, >70% of years: 15 | Up to 25 |
+
+### FCF Score (0–100)
+
+| Component | How It's Calculated | Points |
+|-----------|-------------------|--------|
+| Positive FCF | Current year FCF > 0 | 30 |
+| Positive streak | ≥4 consecutive years: 25, ≥3 years: 15 | Up to 25 |
+| Growing | Most recent FCF > earliest FCF | 25 |
+| FCF Yield | FCF ÷ Market Cap. >3%: 20, >2%: 10 | Up to 20 |
+
+### DCF / Valuation (0 or 25)
+
+Binary check: is the stock undervalued based on a conservative DCF model?
 
 | Parameter | Value |
 |-----------|-------|
 | Years 1–5 FCF growth | 8% |
 | Years 6–10 FCF growth | 3% |
 | Terminal growth rate | 2.5% |
-| Discount rate (required return) | 10% |
+| Discount rate | 10% |
+
+Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.20 = 5 pts to final score).
+
+### Table Columns
+
+Both `analyze.py` and `history.py` print the same table:
+
+```
+#  Symbol  Name  Score  EPS  ROE  FCF  ROE%  D/E  CAGR  FCF$B  FYld  IV$  MoS%  UV  Price  P/E
+```
+
+| Column | Full Name | Meaning |
+|--------|-----------|---------|
+| **#** | Rank | Position sorted by Score (highest first) |
+| **Symbol** | Ticker | Stock ticker, e.g. AAPL |
+| **Name** | Company Name | Full name (truncated to fit) |
+| **Score** | Buffett Score | Weighted score 0–100 |
+| **EPS** | EPS Sub-Score | Earnings consistency + growth (0–100) |
+| **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
+| **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
+| **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
+| **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
+| **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS |
+| **FCF$B** | FCF in Billions | Current year Free Cash Flow |
+| **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
+| **IV$** | Intrinsic Value | DCF-estimated fair share price |
+| **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = cheap |
+| **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
+| **Price** | Current Price | Market price at time of scan (Yahoo Finance) |
+| **P/E** | Price-to-Earnings | Share price ÷ trailing EPS |
 
 ---
 
 ## Project Structure
 
 ```
-buffett_screener.py        # CLI entry point — score & rank stocks
-discover.py                # Discovery scanner — find new candidates online
-history.py                 # Score history viewer — track changes over time
-tickers.txt                # Editable ticker list (one per line, # comments)
+screen.py                  # Step 1 — scan Finviz for candidates
+analyze.py                 # Step 2 — deep fundamental analysis
+history.py                 # Step 3 — browse score history
+tickers.txt                # Your tracked ticker list
 screener/
 ├── __init__.py            # Package exports
 ├── data.py                # Ticker loading + yfinance data fetching
@@ -275,7 +268,7 @@ screener/
 ├── roe.py                 # Return on equity & debt analysis
 ├── fcf.py                 # Free cash flow strength analysis
 ├── dcf.py                 # DCF intrinsic value calculation
-└── output.py              # Terminal display formatting
+└── output.py              # Shared table formatting
 ```
 
 ## Requirements

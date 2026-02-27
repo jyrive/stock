@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Warren Buffett Style Stock Screener
+Buffett Fundamental Analyzer
+
+Deep-scores stocks on EPS growth, ROE, FCF, and DCF intrinsic value.
+Saves results to scores.db for historical tracking.
 
 Usage:
-    python buffett_screener.py                    # screen tickers from tickers.txt
-    python buffett_screener.py AAPL MSFT GOOGL    # screen specific tickers
-    python buffett_screener.py my_picks.txt       # screen tickers from a custom file
+    python analyze.py                    # analyze tickers from tickers.txt
+    python analyze.py AAPL MSFT GOOGL    # analyze specific tickers
+    python analyze.py my_picks.txt       # analyze tickers from a custom file
 """
 
 import sys

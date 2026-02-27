@@ -134,7 +134,7 @@ def main():
         dates = get_scan_dates()
 
         if not latest:
-            print("No scores in database yet. Run buffett_screener.py first.")
+            print("No scores in database yet. Run analyze.py first.")
             return
 
         print(f"\nDatabase has {len(dates)} scan date(s), {len(latest)} unique tickers.")

@@ -169,10 +169,10 @@ def print_discovery_results(new_candidates, existing_matches, preset_name):
         print(f"{'─' * 60}")
         print("  Quick copy — run screener on new candidates:")
         tickers_str = " ".join(row.get("Ticker", "") for row in new_candidates)
-        print(f"  python buffett_screener.py {tickers_str}")
+        print(f"  python analyze.py {tickers_str}")
     else:
         print("\n  No new candidates found. Try a different preset.")
 
     print()
     print(f"Available presets: {', '.join(PRESETS.keys())}")
-    print(f"Usage: python discover.py [preset]")
+    print(f"Usage: python screen.py [preset]")
