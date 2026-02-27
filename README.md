@@ -3,8 +3,9 @@
 A Python toolkit for finding and analyzing stocks using Warren Buffett's investment principles.
 
 - **Screen** — scan Finviz for candidates matching Buffett-style filters
-- **Analyze** — deep-score stocks on EPS growth, ROE, FCF, and DCF intrinsic value
+- **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, and DCF intrinsic value
 - **Track** — store scores in SQLite and spot changes over time
+- **Deep Dive** — get a tailored manual due-diligence checklist for any stock
 
 ---
 
@@ -26,15 +27,15 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 
 | # | Buffett's Step | This Tool | Status |
 |---|---------------|-----------|--------|
-| 1 | **Understand the business** — only invest in what you understand | Shows sector/industry labels. *You* decide if you understand it. | ❌ Manual |
-| 2 | **Durable competitive advantage (moat)** — brand, patents, switching costs, network effects | Sustained high ROE + high margins in screener are quantitative proxies for a moat. Source and durability require your judgment. | ⚠️ Proxy |
+| 1 | **Understand the business** — only invest in what you understand | Shows sector/industry labels. `deepdive.py` asks you to explain the business in one sentence. | ⚠️ Guided |
+| 2 | **Durable competitive advantage (moat)** — brand, patents, switching costs, network effects | Sustained high ROE as quantitative proxy. `deepdive.py` walks you through identifying the moat source. | ⚠️ Guided |
 | 3 | **Consistent earnings growth** — upward EPS over many years, not erratic | EPS consistency check (≥65% years growing) + CAGR scoring. | ✅ Covered |
 | 4 | **High return on equity** — ROE >15% sustained over time | Current ROE level + historical consistency bonus + D/E penalty. | ✅ Covered |
 | 5 | **Conservative debt** — can pay off debt from a few years of earnings | D/E ratio check (<150 = reasonable). Cash/Debt ratio scored in balance sheet module. | ✅ Covered |
 | 6 | **Strong free cash flow** — business converts earnings into real cash | FCF streak, growth trend, and FCF yield scored. | ✅ Covered |
 | 7 | **Owner earnings** — net income + depreciation − capex − working capital changes | FCF (operating cash flow − capex) is a close approximation. Does not compute Buffett's exact owner earnings formula. | ⚠️ Approx |
 | 8 | **Intrinsic value & margin of safety** — buy only at a significant discount to fair value | 10-year DCF model with terminal value. Flags undervalued when IV > Price × 1.15. | ✅ Covered |
-| 9 | **Management quality** — honest, shareholder-oriented, good capital allocators | Not assessed. No insider ownership, tenure, or capital allocation analysis. | ❌ Manual |
+| 9 | **Management quality** — honest, shareholder-oriented, good capital allocators | `deepdive.py` provides a management checklist (CEO tenure, insider ownership, capital allocation, compensation). Research links included. | ⚠️ Guided |
 | 10 | **Reasonable price** — don't overpay even for a great business | P/E displayed. FCF yield calculated. Finviz preset filters P/E < 25. | ✅ Covered |
 | 11 | **Predictable earnings** — avoid cyclicals and turnarounds | EPS consistency ratio catches erratic earnings. Doesn't assess revenue stability or customer concentration. | ⚠️ Partial |
 | 12 | **High profit margins** — pricing power and operational efficiency | Finviz presets filter operating margin >15–20%. Analyzer doesn't score margins independently. | ⚠️ Partial |
@@ -42,7 +43,7 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 | 14 | **Balance sheet strength** — liquidity, retained earnings, acquisition discipline | Current ratio, cash/debt, retained earnings trend, goodwill % of assets. | ✅ Covered |
 | 15 | **Industry positioning** — long-term tailwinds, avoid commoditized sectors | Sector/industry labels shown. No automated industry-quality scoring. | ⚠️ Partial |
 
-**Bottom line:** the tool handles steps 3–6, 8, 10, and 14 quantitatively. Steps 1, 2, 9, and 13 require your own research. The rest are partially covered — the numbers are there, but interpreting them is up to you.
+**Bottom line:** the tool handles steps 3–6, 8, 10, and 14 quantitatively. Steps 1, 2, 7, 9 are guided by `deepdive.py` (tells you exactly what to check and where). Step 13 is not covered. The rest are partially covered — the numbers are there, but interpreting them is up to you.
 
 ---
 
@@ -162,8 +163,8 @@ Each stock gets a detailed per-stock breakdown:
 ──────────────────────────────────────────────────────────────────────
   #1  MSFT - Microsoft Corporation
 ──────────────────────────────────────────────────────────────────────
-  Sector: Technology | Market Cap: $2985.7B | Price: $401.72
-  Buffett Score: 72.2/100
+  Sector: Technology | Market Cap: $2985.7B | Price: $449.26
+  Buffett Score: 69.2/100
 
   📈 EPS GROWTH (Score: 81/100)
      EPS History: 2022: $9.65 → 2023: $9.68 → 2024: $11.8 → 2025: $13.64
@@ -175,19 +176,23 @@ Each stock gets a detailed per-stock breakdown:
   💵 FREE CASH FLOW (Score: 90/100)
      Current FCF: $71.61B | FCF Yield: 2.4% | Growing: ✅
 
+  🏦 BALANCE SHEET HEALTH (Score: 56/100)
+     Current Ratio: 1.35 | Cash/Debt: 0.67 | Retained Earnings: Growing ✅
+     Goodwill % of Assets: 14.0%
+
   🎯 INTRINSIC VALUE / DCF
-     Intrinsic Value: $168.48 vs Price: $401.72
-     Margin of Safety: -138.44% | Undervalued: ❌
+     Intrinsic Value: $168.48 vs Price: $449.26
+     Margin of Safety: -166.6% | Undervalued: ❌
 ```
 
 Followed by a summary table (identical in `analyze.py` and `history.py`):
 
 ```
-#    Symbol  Name                         Score  EPS  ROE  FCF   ROE%    D/E   CAGR  FCF$B  FYld       IV$    MoS%  UV     Price    P/E
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-1    ADBE    Adobe Inc.                    84.0   96  100  100    55%     57  18.2%    9.8  9.1%   $419.20   38.2%   ✅   $259.04   15.5
-2    CMCSA   Comcast Corporation           80.0  100   80  100    21%    108  64.5%   19.2 17.1%    $93.62   67.0%   ✅    $30.85    5.7
-3    V       Visa Inc.                     77.5   90  100  100    54%     55  16.0%   21.6  3.5%   $224.26  -41.2%   ❌   $316.70   29.8
+#    Symbol  Name                         Score  EPS  ROE  FCF  BAL   ROE%    D/E    CR   CAGR  FCF$B  FYld   GW%       IV$    MoS%  UV     Price    P/E
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1    MSFT    Microsoft Corporation         69.2   81  100   90   56   34.4%  31.5  1.35  12.2%   71.6  2.4%  14.0%   $168.48 -166.6%   ❌   $449.26   34.2
+2    V       Visa Inc.                     68.2   90  100  100   38   53.6%  54.5  1.41  16.0%   21.6  3.5%  38.1%   $224.26  -41.2%   ❌   $316.70   29.8
+3    AAPL    Apple Inc.                    51.0   46  100   70   38   71.5%    —   0.87  -0.4%  108.8  3.3%   0.0%   $342.10  -31.5%   ❌   $210.79   33.0
 ```
 
 ---
