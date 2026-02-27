@@ -409,25 +409,23 @@ def print_deep_dive(r):
     _section("10. WHERE TO DO THIS RESEARCH")
     print()
 
-    sym_lower = sym.lower()
     _todo(f"SEC filings: https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company={sym}&type=10-K")
     _todo(f"Earnings calls: https://seekingalpha.com/symbol/{sym}/earnings/transcripts")
     _todo(f"Insider trading: https://openinsider.com/screener?s={sym}")
-    _todo(f"Analyst estimates: https://finance.yahoo.com/quote/{sym}/analysis")
-    _todo(f"News: https://finance.yahoo.com/quote/{sym}/news")
     _todo(f"Industry data: search '{industry} market size trends'")
     print()
 
+    ybase = f"https://finance.yahoo.com/quote/{sym}"
     print(f"  {'─' * 60}")
-    print(f"  Bing Finance — {sym}")
+    print(f"  Yahoo Finance — {sym}")
     print(f"  {'─' * 60}")
-    bing_base = f"https://www.bing.com/entitydetails?q={sym_lower}&wt=FinanceGenericL3TabModule&ocid=ansMSNMoney11"
-    _todo(f"Overview:         {bing_base}&l3=L3_Overview")
-    _todo(f"Financials:       {bing_base}&l3=L3_Financials")
-    _todo(f"Income Statement: {bing_base}&l3=L3_IncomeStatement")
-    _todo(f"Balance Sheet:    {bing_base}&l3=L3_BalanceSheet")
-    _todo(f"Cash Flow:        {bing_base}&l3=L3_CashFlow")
-    _todo(f"Analysis:         {bing_base}&l3=L3_Analysis")
+    _todo(f"Summary:          {ybase}/")
+    _todo(f"Financials:       {ybase}/financials/")
+    _todo(f"Balance Sheet:    {ybase}/balance-sheet/")
+    _todo(f"Cash Flow:        {ybase}/cash-flow/")
+    _todo(f"Analysis:         {ybase}/analysis/")
+    _todo(f"Holders:          {ybase}/holders/")
+    _todo(f"News:             {ybase}/news/")
     print()
 
 
