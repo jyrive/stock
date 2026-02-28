@@ -169,11 +169,11 @@ def _send_email(subject, body):
     import smtplib
     from email.mime.text import MIMEText
 
-    host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-    port = int(os.environ.get("SMTP_PORT", "587"))
+    host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
+    port = int(os.environ.get("SMTP_PORT") or "587")
     user = os.environ["SMTP_USER"]
     pw = os.environ["SMTP_PASS"]
-    to = os.environ.get("REPORT_TO", user)
+    to = os.environ.get("REPORT_TO") or user
 
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
