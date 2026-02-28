@@ -25,7 +25,7 @@ from scoring import (
     analyze_revenue_growth,
 )
 from utils.data import load_tickers, get_financial_data
-from utils.formatting import print_results
+from utils.formatting import print_results, print_summary_table, flatten_result
 from utils.database import save_scores
 from utils.cache import enable_cache
 from utils.config import get_weights
@@ -90,12 +90,15 @@ def main():
     # Parse flags
     export_csv = False
     export_xlsx = False
+    summary_only = False
     remaining_args = []
     for arg in sys.argv[1:]:
         if arg == "--csv":
             export_csv = True
         elif arg in ("--xlsx", "--excel"):
             export_xlsx = True
+        elif arg == "--summary":
+            summary_only = True
         else:
             remaining_args.append(arg)
 
@@ -133,7 +136,11 @@ def main():
 
     results.sort(key=lambda x: x["buffett_score"], reverse=True)
 
-    print_results(results)
+    if summary_only:
+        flat = [flatten_result(r) for r in results]
+        print_summary_table(flat, title="BUFFETT SCORE SUMMARY")
+    else:
+        print_results(results)
 
     # Save to local SQLite database
     saved = save_scores(results)

@@ -15,6 +15,10 @@ Usage:
     python stock.py discover [--analyze]       Find new investment ideas (Finviz)
     python stock.py compare <A> <B>            Side-by-side comparison
 
+    python stock.py daily                      Quick morning check (~30s)
+    python stock.py weekly                     Portfolio + watchlist review (~2min)
+    python stock.py monthly                    Full review + discover (~5min)
+
     python stock.py                            Show this help
 """
 
@@ -77,15 +81,31 @@ Commands:
   compare AAPL,MSFT GOOGL,META  Compare two ticker groups
   compare portfolio other.txt   Compare vs external file
 
+  ── Workflows ─────────────────────────────────────────
+  daily                          Quick morning check (~30s)
+                                 Portfolio summary + alerts (compact)
+
+  weekly                         Weekly review (~2min)
+                                 Portfolio + watchlist summaries,
+                                 buying opportunities, score movers
+
+  monthly                        Full review (~5min)
+                                 Discover + full portfolio analysis
+                                 + watchlist + compare + CSV export
+
   ── Recommended Frequency ─────────────────────────────
-  portfolio    → every 2–3 days (your money)
-  watchlist    → weekly          (entry points)
-  discover     → bi-weekly       (new ideas)
-  compare      → on demand
+  daily        → every 1–2 days  (your money, compact)
+  weekly       → weekly          (entry points)
+  monthly      → bi-weekly       (new ideas + full review)
+  discover     → on demand
 
 Examples:
+  python stock.py daily                        # quick morning check
+  python stock.py weekly                       # weekly review
+  python stock.py monthly                      # full monthly review
   python stock.py analyze AAPL MSFT GOOGL
   python stock.py analyze                      # uses tickers.txt
+  python stock.py analyze AAPL --summary       # compact summary only
   python stock.py screen high_roe
   python stock.py history AAPL
   python stock.py history --movers
@@ -189,6 +209,24 @@ def cmd_compare(args):
     main()
 
 
+def cmd_daily(args):
+    """Daily portfolio check."""
+    from commands.workflow import daily
+    daily()
+
+
+def cmd_weekly(args):
+    """Weekly review."""
+    from commands.workflow import weekly
+    weekly()
+
+
+def cmd_monthly(args):
+    """Monthly full review."""
+    from commands.workflow import monthly
+    monthly()
+
+
 def cmd_config(args):
     """Manage configuration."""
     from utils.config import save_default_config, load_config, CONFIG_PATH
@@ -219,6 +257,9 @@ COMMANDS = {
     "watchlist": cmd_watchlist,
     "discover": cmd_discover,
     "compare": cmd_compare,
+    "daily": cmd_daily,
+    "weekly": cmd_weekly,
+    "monthly": cmd_monthly,
 }
 
 # Aliases

@@ -347,7 +347,31 @@ Shows average scores, P/E, undervalued count, rankings side-by-side, and overlap
 
 > **Recommended frequency:** on demand.
 
-### Typical Workflow
+### Workflow Commands
+
+Instead of running individual commands, use the built-in workflow commands that chain
+the right operations together with compact output:
+
+```bash
+python stock.py daily       # Quick morning check (~30s)
+python stock.py weekly      # Portfolio + watchlist review (~2min)
+python stock.py monthly     # Full review + discover (~5min)
+```
+
+| Command | What it does | Output |
+|---------|-------------|--------|
+| `daily` | Portfolio summary (compact) + alerts | ~20 lines |
+| `weekly` | Portfolio + watchlist summaries + buying opportunities + score movers | ~50 lines |
+| `monthly` | Discover new ideas + full portfolio & watchlist analysis + compare + CSV export | Verbose |
+
+**Tip:** Use `--summary` on any `analyze` command for compact output:
+```bash
+python stock.py analyze AAPL MSFT --summary   # summary table only, no per-stock detail
+```
+
+### Manual Workflow
+
+For more control, run the individual steps:
 
 ```
  ┌──────────────────────────────────────────────────────┐

@@ -142,3 +142,43 @@ def export_excel(results, filepath=None):
     wb.save(filepath)
     print(f"  Exported {len(rows)} stocks to {filepath}")
     return filepath
+
+
+def export_csv_from_db(tickers=None):
+    """Export latest scores from the database to a dated CSV snapshot.
+
+    Args:
+        tickers: Optional list of ticker symbols to include.
+                 If None, exports all tickers in the database.
+
+    Returns:
+        Path to the written file.
+    """
+    from utils.database import get_latest_scores
+
+    latest = get_latest_scores()
+    if not latest:
+        print("  No scores in database to export.")
+        return None
+
+    if tickers:
+        t_set = set(t.upper() for t in tickers)
+        latest = [r for r in latest if r["symbol"] in t_set]
+
+    if not latest:
+        print("  No matching scores found in database.")
+        return None
+
+    filepath = f"snapshot_{date.today().isoformat()}.csv"
+
+    # Use DB column names directly — skip internal columns
+    skip = {"id"}
+    fieldnames = [k for k in latest[0].keys() if k not in skip]
+
+    with open(filepath, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(latest)
+
+    print(f"  📁 Exported {len(latest)} stocks to {filepath}")
+    return filepath

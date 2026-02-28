@@ -1,5 +1,5 @@
-# Watchlist — stocks you're WATCHING
+# Portfolio — stocks you OWN
 # One ticker per line.  Lines starting with # are comments.
 
-GOOGL
-V
+AAPL
+MSFT
