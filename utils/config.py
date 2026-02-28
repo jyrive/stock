@@ -12,80 +12,90 @@ CONFIG_PATH = os.path.join(_PROJECT_ROOT, "config.yaml")
 # ── Defaults ─────────────────────────────────────────────────────────
 
 DEFAULTS = {
-    # Scoring weights (must sum to 1.0)
+    # ── Scoring weights ──────────────────────────────────────────
+    # How much each module contributes to the final Buffett score.
+    # All six values MUST sum to 1.0 (auto-normalized if they don't).
+    # Range per value: 0.0 – 1.0.  Set to 0 to ignore a module entirely.
     "weights": {
-        "eps": 0.15,
-        "roe": 0.15,
-        "fcf": 0.20,
-        "balance": 0.15,
-        "dividend": 0.15,
-        "dcf": 0.20,
+        "eps": 0.15,        # EPS growth & consistency weight
+        "roe": 0.15,        # Return on Equity weight
+        "fcf": 0.20,        # Free Cash Flow weight
+        "balance": 0.15,    # Balance sheet health weight
+        "dividend": 0.15,   # Dividend quality weight
+        "dcf": 0.20,        # DCF intrinsic-value weight
     },
 
-    # DCF model assumptions
+    # ── DCF model assumptions ────────────────────────────────────
+    # Controls the Discounted Cash Flow valuation model.
     "dcf": {
-        "growth_rate_high": 0.08,   # Years 1-5
-        "growth_rate_low": 0.03,    # Years 6-10
-        "terminal_growth": 0.025,   # Terminal growth rate
-        "discount_rate": 0.10,      # Required return
-        "margin_required": 0.15,    # 15% margin of safety
+        "growth_rate_high": 0.08,   # FCF growth rate for years 1-5.   Range: 0.0 – 0.25 (0% – 25%)
+        "growth_rate_low": 0.03,    # FCF growth rate for years 6-10.  Range: 0.0 – 0.15 (0% – 15%)
+        "terminal_growth": 0.025,   # Perpetual growth after yr 10.    Range: 0.01 – 0.04 (must be < discount_rate)
+        "discount_rate": 0.10,      # Required annual return (WACC).   Range: 0.06 – 0.15 (6% – 15%)
+        "margin_required": 0.15,    # Margin of safety to flag "undervalued".  Range: 0.0 – 0.50 (0% – 50%)
     },
 
-    # EPS scoring thresholds
+    # ── EPS scoring thresholds ───────────────────────────────────
+    # Tuning knobs for the EPS consistency & growth score (0-100).
     "eps": {
-        "consistency_threshold": 0.65,
-        "cagr_multiplier": 2.5,
-        "cagr_cap": 50,
+        "consistency_threshold": 0.65,  # Fraction of years EPS must grow to count as "consistent".  Range: 0.0 – 1.0
+        "cagr_multiplier": 2.5,         # Points awarded per 1% EPS CAGR (growth component).       Range: 0.5 – 5.0
+        "cagr_cap": 50,                 # Max points from CAGR (caps high-growth outliers).         Range: 10 – 100
     },
 
-    # ROE scoring thresholds
+    # ── ROE scoring thresholds ───────────────────────────────────
+    # What counts as "high" ROE and acceptable leverage.
     "roe": {
-        "high_threshold": 15,
-        "debt_reasonable": 150,
-        "debt_max": 200,
+        "high_threshold": 15,    # ROE% above this = strong moat signal.    Range: 10 – 30
+        "debt_reasonable": 150,  # Debt/Equity below this = full credit.    Range: 50 – 200
+        "debt_max": 200,         # Debt/Equity above this = no credit.      Range: 100 – 400
     },
 
-    # FCF scoring thresholds
+    # ── FCF scoring thresholds ───────────────────────────────────
+    # Free Cash Flow quality gates.
     "fcf": {
-        "yield_high": 3.0,
-        "yield_mid": 2.0,
-        "streak_high": 4,
-        "streak_mid": 3,
+        "yield_high": 3.0,   # FCF Yield% above this = full yield points.   Range: 1.0 – 8.0
+        "yield_mid": 2.0,    # FCF Yield% above this = partial credit.      Range: 0.5 – 5.0
+        "streak_high": 4,    # Consecutive positive-FCF years for full pts.  Range: 3 – 10 (integer)
+        "streak_mid": 3,     # Consecutive positive-FCF years for half pts.  Range: 2 – 6  (integer)
     },
 
-    # Balance sheet thresholds
+    # ── Balance sheet thresholds ─────────────────────────────────
+    # Liquidity, debt coverage, and acquisition risk limits.
     "balance": {
-        "current_ratio_high": 2.0,
-        "current_ratio_mid": 1.5,
-        "cash_debt_high": 1.0,
-        "cash_debt_mid": 0.5,
-        "goodwill_low": 10,
-        "goodwill_mid": 20,
+        "current_ratio_high": 2.0,  # Current ratio ≥ this = full liquidity pts.  Range: 1.5 – 4.0
+        "current_ratio_mid": 1.5,   # Current ratio ≥ this = partial credit.      Range: 1.0 – 3.0
+        "cash_debt_high": 1.0,      # Cash/Debt ≥ this = can pay off all debt.     Range: 0.5 – 3.0
+        "cash_debt_mid": 0.5,       # Cash/Debt ≥ this = partial credit.           Range: 0.1 – 1.5
+        "goodwill_low": 10,         # Goodwill% of assets below this = excellent.  Range: 5 – 20
+        "goodwill_mid": 20,         # Goodwill% of assets below this = acceptable. Range: 10 – 40
     },
 
-    # Dividend thresholds
+    # ── Dividend thresholds ──────────────────────────────────────
+    # What qualifies as a quality dividend payer.
     "dividend": {
-        "yield_high": 2.0,
-        "yield_mid": 1.0,
-        "payout_good": 60,
-        "payout_ok": 80,
+        "yield_high": 2.0,   # Dividend yield% ≥ this = full yield pts.    Range: 1.0 – 5.0
+        "yield_mid": 1.0,    # Dividend yield% ≥ this = partial credit.    Range: 0.3 – 3.0
+        "payout_good": 60,   # Payout ratio% ≤ this = sustainable.         Range: 30 – 70
+        "payout_ok": 80,     # Payout ratio% ≤ this = acceptable.          Range: 50 – 90
     },
 
-    # Display settings
+    # ── Display settings ─────────────────────────────────────────
     "display": {
-        "top_n": 20,
-        "max_peers": 5,
+        "top_n": 20,       # Max stocks to show in ranked output.     Range: 5 – 100
+        "max_peers": 5,    # Peers to include in comparison table.    Range: 3 – 10
     },
 
-    # Cache settings
+    # ── Cache settings ───────────────────────────────────────────
     "cache": {
-        "expire_hours": 4,
+        "expire_hours": 4,  # Hours before cached API responses expire.  Range: 1 – 24
     },
 
-    # Alert thresholds (for price target alerts)
+    # ── Alert thresholds ─────────────────────────────────────────
+    # Controls what triggers price target & score-drop alerts.
     "alerts": {
-        "margin_of_safety_min": 0,     # MoS% above this = alert
-        "score_drop_threshold": 10,    # Score drop > this = alert
+        "margin_of_safety_min": 0,     # MoS% above this triggers an undervalued alert.  Range: -20 – 30
+        "score_drop_threshold": 10,    # Buffett score drop ≥ this triggers an alert.    Range: 5 – 30
     },
 }
 
