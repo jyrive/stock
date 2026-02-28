@@ -53,13 +53,13 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 
 ### Unified CLI
 
-All commands are available through `stock.py` (or the individual scripts directly):
+All commands are available through `stock.py`:
 
 ```bash
-python stock.py analyze AAPL MSFT    # or: python analyze.py AAPL MSFT
-python stock.py screen high_roe      # or: python screen.py high_roe
-python stock.py history --movers     # or: python history.py --movers
-python stock.py deepdive AAPL        # or: python deepdive.py AAPL
+python stock.py analyze AAPL MSFT    # deep fundamental analysis
+python stock.py screen high_roe      # discover candidates via Finviz
+python stock.py history --movers     # browse score history
+python stock.py deepdive AAPL        # due-diligence checklist
 python stock.py chart AAPL MSFT      # plot score trends as PNG
 python stock.py cache stats          # show cache info
 python stock.py cache clear          # clear cached API responses
@@ -230,11 +230,14 @@ Followed by a summary table:
 3    AAPL    Apple Inc.                    48.1   46  100   70   38   50   71.5%    —   0.87  -0.4%  108.8  3.3%   0.0%  0.4%  16%   $342.10  -31.5%   ❌   $210.79   33.0
 ```
 
+
 ---
 
-## Scoring Refersix sub-scores:
+## Scoring Reference
 
-$$\text{Score} = \text{EPS} \times 0.15 + \text{ROE} \times 0.15 + \text{FCF} \times 0.20 + \text{BAL} \times 0.15 + \text{DIV} \times 0.15 + \text{DCF} \times 0.20$$
+### Buffett Score (0–100)
+
+Weighted sum of six sub-scores:
 
 | Criteria | Weight | What It Measures |
 |----------|--------|------------------|
@@ -242,11 +245,7 @@ $$\text{Score} = \text{EPS} \times 0.15 + \text{ROE} \times 0.15 + \text{FCF} \t
 | **ROE** | 15% | Return on equity >15% with reasonable debt |
 | **Free Cash Flow** | 20% | Positive, growing FCF and FCF yield |
 | **Balance Sheet** | 15% | Liquidity, debt coverage, retained earnings, goodwill |
-| **Dividends** | 15% | Dividend yield, payout sustainability, growth streak
-| **EPS Growth** | 20% | Consistent earnings growth over 4+ years |
-| **ROE** | 20% | Return on equity >15% with reasonable debt |
-| **Free Cash Flow** | 25% | Positive, growing FCF and FCF yield |
-| **Balance Sheet** | 15% | Liquidity, debt coverage, retained earnings, goodwill |
+| **Dividends** | 15% | Dividend yield, payout sustainability, growth streak |
 | **Valuation (DCF)** | 20% | Margin of safety based on discounted cash flow |
 
 ### EPS Score (0–100)
@@ -288,9 +287,14 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 
 ### Balance Sheet Health (0–100)
 
-| Component | How It’s Calculated | Points |
+| Component | How It's Calculated | Points |
 |-----------|---------------------|--------|
-| CuDividend Score (0–100)
+| Current Ratio | ≥2.0: 25, ≥1.5: 20, ≥1.0: 10 | Up to 25 |
+| Cash / Debt | ≥1.0: 25, ≥0.5: 20, ≥0.25: 10 | Up to 25 |
+| Retained Earnings | Growing ≥75% of years: 25, growing overall: 15 | Up to 25 |
+| Goodwill % | <10%: 25, <20%: 15, <30%: 5 | Up to 25 |
+
+### Dividend Score (0–100)
 
 | Component | How It's Calculated | Points |
 |-----------|---------------------|--------|
@@ -299,8 +303,7 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 | Dividend Yield | ≥2%: 25, ≥1%: 15, >0: 5 | Up to 25 |
 | Dividend Growing | Consecutive annual increases | Up to 25 |
 
-### rrent Ratio | ≥2.0: 25, ≥1.5: 20, ≥1.0: DIV  ROE%  D/E  CR  CAGR  FCF$B  FYld  GW%  DY%  PO%  IV$  MoS%  UV  Price  P/E
-```
+### Table Columns
 
 | Column | Full Name | Meaning |
 |--------|-----------|---------|
@@ -321,54 +324,43 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 | **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
 | **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
 | **DY%** | Dividend Yield | Annual Dividend ÷ Price × 100 |
-| **PO%** | Payout Ratio | Dividends ÷ Net Income × 100. <60% is sustainable
-| **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
-| **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
-| **BAL** | Balance Sheet Score | Liquidity, debt coverage, retained earnings, goodwill (0–100) |
-| **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
-| **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
-| **CR** | Current Ratio | Current Assets ÷ Current Liabilities. >1.5 is healthy |
-| **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS |
-| **FCF$B** | FCF in Billions | Current year Free Cash Flow |
-| **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
-| **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
-|tock.py                   # Unified CLI entry point
-screen.py                  # Step 1 — scan Finviz for candidates
-analyze.py                 # Step 2 — deep fundamental analysis
-history.py                 # Step 3 — browse score history
-deepdive.py                # Step 4 — manual due-diligence checklist
-tickers.txt                # Your tracked ticker list
-screener/
-├── __init__.py            # Package exports
-├── data.py                # Ticker loading + yfinance data fetching
-├── db.py                  # SQLite score storage and queries
-├── discovery.py           # Finviz screener integration
-├── analysis.py            # Re-exports from analysis sub-modules
-├── eps.py                 # EPS consistency & growth analysis
-├── roe.py                 # Return on equity & debt analysis
-├── fcf.py                 # Free cash flow strength analysis
-├── balance.py             # Balance sheet health analysis
-├── dividend.py            # Dividend quality analysis
-├── dcf.py                 # DCF intrinsic value calculation
-├── output.py              # Shared table formatting (color-coded)
-├── colors.py              # ANSI terminal color helpers
-├── cache.py               # API response caching (SQLite-backed)
-└── chart.py               # Score trend chart generation (PNG)igence checklist
-tickers.txt                # Your tracked ticker list
-screener/
-├─[requests-cache](https://github.com/requests-cache/requests-cache) — transparent API response caching
-- [matplotlib](https://matplotlib.org/) — score trend chart generation
-- ─ __init__.py            # Package exports
-├── data.py                # Ticker loading + yfinance data fetching
-├── db.py                  # SQLite score storage and queries
-├── discovery.py           # Finviz screener integration
-├── analysis.py            # Re-exports from analysis sub-modules
-├── eps.py                 # EPS consistency & growth analysis
-├── roe.py                 # Return on equity & debt analysis
-├── fcf.py                 # Free cash flow strength analysis
-├── balance.py             # Balance sheet health analysis
-├── dcf.py                 # DCF intrinsic value calculation
-└── output.py              # Shared table formatting
+| **PO%** | Payout Ratio | Dividends ÷ Net Income × 100. <60% is sustainable |
+| **IV$** | Intrinsic Value | DCF-estimated fair share price |
+| **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = cheap |
+| **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
+| **Price** | Current Price | Market price at time of scan (Yahoo Finance) |
+| **P/E** | Price-to-Earnings | Share price ÷ trailing EPS |
+
+---
+
+## Project Structure
+
+```
+stock.py                       # Unified CLI entry point
+tickers.txt                    # Your tracked ticker list
+
+commands/                      # CLI command handlers
+├── analyze.py                 # Deep fundamental analysis
+├── screen.py                  # Finviz candidate discovery
+├── history.py                 # Score history browser
+└── deepdive.py                # Due-diligence checklist
+
+scoring/                       # Fundamental analysis modules
+├── eps.py                     # EPS consistency & growth
+├── roe.py                     # Return on equity & debt
+├── fcf.py                     # Free cash flow strength
+├── balance.py                 # Balance sheet health
+├── dividend.py                # Dividend quality
+└── dcf.py                     # DCF intrinsic value
+
+utils/                         # Shared infrastructure
+├── data.py                    # Ticker loading + Yahoo Finance
+├── database.py                # SQLite score storage
+├── discovery.py               # Finviz screener integration
+├── formatting.py              # Table output formatting (color-coded)
+├── colors.py                  # ANSI terminal color helpers
+├── cache.py                   # API response caching
+└── chart.py                   # Score trend chart generation (PNG)
 ```
 
 ## Requirements
@@ -376,6 +368,8 @@ screener/
 - Python 3.10+
 - [yfinance](https://github.com/ranaroussi/yfinance) — financial data from Yahoo Finance
 - [finvizfinance](https://github.com/lit26/finvizfinance) — Finviz screener API
+- [requests-cache](https://github.com/requests-cache/requests-cache) — transparent API response caching
+- [matplotlib](https://matplotlib.org/) — score trend chart generation
 - pandas, numpy
 
 ## Disclaimer

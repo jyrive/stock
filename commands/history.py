@@ -18,14 +18,14 @@ Usage:
 import sys
 import warnings
 
-from screener.db import (
+from utils.database import (
     get_scan_dates,
     get_scores_by_date,
     get_ticker_history,
     get_latest_scores,
     get_biggest_movers,
 )
-from screener.output import (
+from utils.formatting import (
     print_summary_table,
     print_legend,
     _fmt,
@@ -188,7 +188,7 @@ def main():
         return
 
     if args[0] == "--chart" and len(args) >= 2:
-        from screener.chart import chart_from_db
+        from utils.chart import chart_from_db
         symbols = [s.upper().strip() for s in args[1:]]
         chart_from_db(symbols)
         return

@@ -63,21 +63,21 @@ def cmd_analyze(args):
     """Run fundamental analysis."""
     # Reuse analyze.py logic by importing its main
     sys.argv = ["analyze.py"] + args
-    from analyze import main
+    from commands.analyze import main
     main()
 
 
 def cmd_screen(args):
     """Run Finviz discovery."""
     sys.argv = ["screen.py"] + args
-    from screen import main
+    from commands.screen import main
     main()
 
 
 def cmd_history(args):
     """Browse score history."""
     sys.argv = ["history.py"] + args
-    from history import main
+    from commands.history import main
     main()
 
 
@@ -88,7 +88,7 @@ def cmd_deepdive(args):
         print("Example: python stock.py deepdive AAPL")
         return
     sys.argv = ["deepdive.py"] + args
-    from deepdive import main
+    from commands.deepdive import main
     main()
 
 
@@ -99,14 +99,14 @@ def cmd_chart(args):
         print("Example: python stock.py chart AAPL MSFT")
         return
 
-    from screener.chart import chart_from_db
+    from utils.chart import chart_from_db
     symbols = [s.upper().strip() for s in args]
     chart_from_db(symbols)
 
 
 def cmd_cache(args):
     """Manage API cache."""
-    from screener.cache import clear_cache, cache_stats
+    from utils.cache import clear_cache, cache_stats
 
     if not args or args[0] == "stats":
         cache_stats()

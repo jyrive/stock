@@ -21,7 +21,7 @@ Presets:
 import sys
 import warnings
 
-from screener.discovery import (
+from utils.discovery import (
     PRESETS,
     discover_candidates,
     print_discovery_results,

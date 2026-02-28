@@ -13,8 +13,7 @@ Usage:
 import sys
 import warnings
 
-from screener import (
-    get_financial_data,
+from scoring import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,
@@ -22,8 +21,9 @@ from screener import (
     analyze_dividends,
     calculate_dcf_intrinsic_value,
 )
-from screener.db import save_scores
-from screener.cache import enable_cache
+from utils.data import get_financial_data
+from utils.database import save_scores
+from utils.cache import enable_cache
 
 warnings.filterwarnings("ignore")
 
