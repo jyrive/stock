@@ -3,9 +3,11 @@
 A Python toolkit for finding and analyzing stocks using Warren Buffett's investment principles.
 
 - **Screen** — scan Finviz for candidates matching Buffett-style filters
-- **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, and DCF intrinsic value
+- **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, dividends, and DCF intrinsic value
 - **Track** — store scores in SQLite and spot changes over time
+- **Chart** — plot score trends from history as PNG charts
 - **Deep Dive** — get a tailored manual due-diligence checklist for any stock
+- **Cache** — transparent API response caching for faster re-runs
 
 ---
 
@@ -16,7 +18,7 @@ git clone https://github.com/jyrive/stock.git
 cd stock
 python -m venv .venv
 source .venv/bin/activate
-pip install yfinance pandas numpy finvizfinance
+pip install yfinance pandas numpy finvizfinance requests-cache matplotlib
 ```
 
 ---
@@ -39,15 +41,37 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 | 10 | **Reasonable price** — don't overpay even for a great business | P/E displayed. FCF yield calculated. Finviz preset filters P/E < 25. | ✅ Covered |
 | 11 | **Predictable earnings** — avoid cyclicals and turnarounds | EPS consistency ratio catches erratic earnings. Doesn't assess revenue stability or customer concentration. | ⚠️ Partial |
 | 12 | **High profit margins** — pricing power and operational efficiency | Finviz presets filter operating margin >15–20%. Analyzer doesn't score margins independently. | ⚠️ Partial |
-| 13 | **Dividends & shareholder returns** — cash returned via dividends and buybacks | Not analyzed. No dividend yield, payout ratio, or buyback tracking. | ❌ Not covered |
+| 13 | **Dividends & shareholder returns** — cash returned via dividends and buybacks | Dividend yield, payout ratio, consecutive increases, and growth scoring. Buyback tracking not included. | ✅ Covered |
 | 14 | **Balance sheet strength** — liquidity, retained earnings, acquisition discipline | Current ratio, cash/debt, retained earnings trend, goodwill % of assets. | ✅ Covered |
 | 15 | **Industry positioning** — long-term tailwinds, avoid commoditized sectors | Sector/industry labels shown. No automated industry-quality scoring. | ⚠️ Partial |
 
-**Bottom line:** the tool handles steps 3–6, 8, 10, and 14 quantitatively. Steps 1, 2, 7, 9 are guided by `deepdive.py` (tells you exactly what to check and where). Step 13 is not covered. The rest are partially covered — the numbers are there, but interpreting them is up to you.
+**Bottom line:** the tool handles steps 3–6, 8, 10, 13, and 14 quantitatively. Steps 1, 2, 7, 9 are guided by `deepdive.py` (tells you exactly what to check and where). The rest are partially covered — the numbers are there, but interpreting them is up to you.
 
 ---
 
 ## Usage
+
+### Unified CLI
+
+All commands are available through `stock.py` (or the individual scripts directly):
+
+```bash
+python stock.py analyze AAPL MSFT    # or: python analyze.py AAPL MSFT
+python stock.py screen high_roe      # or: python screen.py high_roe
+python stock.py history --movers     # or: python history.py --movers
+python stock.py deepdive AAPL        # or: python deepdive.py AAPL
+python stock.py chart AAPL MSFT      # plot score trends as PNG
+python stock.py cache stats          # show cache info
+python stock.py cache clear          # clear cached API responses
+```
+
+Single-letter aliases work too: `a` (analyze), `s` (screen), `h` (history), `d` (deepdive), `c` (chart).
+
+If you pass tickers without a command, it defaults to `analyze`:
+
+```bash
+python stock.py AAPL MSFT GOOGL      # same as: python stock.py analyze AAPL MSFT GOOGL
+```
 
 ### 1. Screen — Find Candidates
 
@@ -73,13 +97,15 @@ Output includes a ready-to-paste command to analyze the new candidates.
 
 ### 2. Analyze — Deep-Score Stocks
 
-Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, and DCF:
+Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
 ```bash
 python analyze.py                    # analyze tickers from tickers.txt
 python analyze.py AAPL MSFT GOOGL    # analyze specific tickers
 python analyze.py my_watchlist.txt   # analyze tickers from a custom file
 ```
+
+API responses are cached for 4 hours to speed up repeated runs.
 
 If no tickers are provided, you'll get an interactive prompt.
 
@@ -94,9 +120,12 @@ python history.py AAPL MSFT GOOGL    # compare multiple tickers
 python history.py --dates            # list all scan dates
 python history.py --date 2026-02-27  # show scores from a specific date
 python history.py --movers           # biggest score changes over time
+python history.py --chart AAPL MSFT  # generate score trend chart (PNG)
 ```
 
 Use this to spot stocks that **stand out at a specific moment** — a sudden score jump or drop tells you something changed, and you can investigate why.
+
+Score trend charts are saved to `charts/` as PNG files.
 
 ### 4. Deep Dive — Manual Due-Diligence Checklist
 
@@ -111,11 +140,12 @@ Runs the analysis and prints a **tailored checklist** of what to research manual
 3. Earnings quality — are they real and sustainable?
 4. Balance sheet strength — with specific red flags highlighted
 5. Free cash flow — where does the cash go?
-6. Valuation — does the price offer margin of safety?
-7. Management quality — who runs it and are they honest?
-8. Risks to investigate — lawsuits, concentration, disruption
-9. Decision checklist — 8 yes/no questions before buying
-10. Research links — SEC filings, insider trading, analyst estimates
+6. Dividend quality — yield, payout sustainability, growth streak
+7. Valuation — does the price offer margin of safety?
+8. Management quality — who runs it and are they honest?
+9. Risks to investigate — lawsuits, concentration, disruption
+10. Decision checklist — 8 yes/no questions before buying
+11. Research links — Yahoo Finance pages for the stock
 
 Every section adapts to the stock's actual numbers (e.g. warns about high debt only if D/E is actually high).
 
@@ -123,13 +153,14 @@ Every section adapts to the stock's actual numbers (e.g. warns about high debt o
 
 ```
  ┌─────────────────────────────────────────────────┐
- │  1. python screen.py high_roe                   │ ← find new candidates
+ │  1. python stock.py screen high_roe             │ ← find new candidates
  │  2. Copy the suggested command from output      │
- │  3. python analyze.py ACN LULU MNST             │ ← deep-score them
+ │  3. python stock.py analyze ACN LULU MNST       │ ← deep-score them
  │  4. Add winners to tickers.txt                  │ ← track going forward
- │  5. python analyze.py                           │ ← re-rank full list
- │  6. python history.py --movers                  │ ← spot changes over time
- │  7. python deepdive.py LULU                     │ ← manual due diligence
+ │  5. python stock.py analyze                     │ ← re-rank full list
+ │  6. python stock.py history --movers            │ ← spot changes over time
+ │  7. python stock.py chart LULU                  │ ← visualize score trend
+ │  8. python stock.py deepdive LULU               │ ← manual due diligence
  └─────────────────────────────────────────────────┘
 ```
 
@@ -157,14 +188,14 @@ Comma-separated tickers on a single line also work: `AAPL, MSFT, GOOGL`
 
 ## Example Output
 
-Each stock gets a detailed per-stock breakdown:
+Each stock gets a detailed per-stock breakdown (with color-coded values in terminal):
 
 ```
 ──────────────────────────────────────────────────────────────────────
   #1  MSFT - Microsoft Corporation
 ──────────────────────────────────────────────────────────────────────
   Sector: Technology | Market Cap: $2985.7B | Price: $449.26
-  Buffett Score: 69.2/100
+  Buffett Score: 65.8/100
 
   📈 EPS GROWTH (Score: 81/100)
      EPS History: 2022: $9.65 → 2023: $9.68 → 2024: $11.8 → 2025: $13.64
@@ -180,19 +211,23 @@ Each stock gets a detailed per-stock breakdown:
      Current Ratio: 1.35 | Cash/Debt: 0.67 | Retained Earnings: Growing ✅
      Goodwill % of Assets: 14.0%
 
+  💎 DIVIDENDS (Score: 75/100)
+     Yield: 0.67% | Payout Ratio: 23.2%
+     Consecutive Increases: 3 yrs | Growing: ✅
+
   🎯 INTRINSIC VALUE / DCF
      Intrinsic Value: $168.48 vs Price: $449.26
      Margin of Safety: -166.6% | Undervalued: ❌
 ```
 
-Followed by a summary table (identical in `analyze.py` and `history.py`):
+Followed by a summary table:
 
 ```
-#    Symbol  Name                         Score  EPS  ROE  FCF  BAL   ROE%    D/E    CR   CAGR  FCF$B  FYld   GW%       IV$    MoS%  UV     Price    P/E
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-1    MSFT    Microsoft Corporation         69.2   81  100   90   56   34.4%  31.5  1.35  12.2%   71.6  2.4%  14.0%   $168.48 -166.6%   ❌   $449.26   34.2
-2    V       Visa Inc.                     68.2   90  100  100   38   53.6%  54.5  1.41  16.0%   21.6  3.5%  38.1%   $224.26  -41.2%   ❌   $316.70   29.8
-3    AAPL    Apple Inc.                    51.0   46  100   70   38   71.5%    —   0.87  -0.4%  108.8  3.3%   0.0%   $342.10  -31.5%   ❌   $210.79   33.0
+#    Symbol  Name                         Score  EPS  ROE  FCF  BAL  DIV   ROE%    D/E    CR   CAGR  FCF$B  FYld   GW%   DY%  PO%       IV$    MoS%  UV     Price    P/E
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1    MSFT    Microsoft Corporation         65.8   81  100   90   56   75   34.4%  31.5  1.35  12.2%   71.6  2.4%  14.0%  0.7%  23%   $168.48 -166.6%   ❌   $449.26   34.2
+2    V       Visa Inc.                     65.0   90  100  100   35   75   53.6%  54.5  1.41  16.0%   21.6  3.5%  38.1%  0.8%  23%   $224.26  -41.2%   ❌   $316.70   29.8
+3    AAPL    Apple Inc.                    48.1   46  100   70   38   50   71.5%    —   0.87  -0.4%  108.8  3.3%   0.0%  0.4%  16%   $342.10  -31.5%   ❌   $210.79   33.0
 ```
 
 ---

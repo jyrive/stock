@@ -43,6 +43,10 @@ def _connect(db_path=None):
             cash_to_debt  REAL,
             retained_earnings_growing INTEGER,
             goodwill_pct  REAL,
+            dividend_score INTEGER,
+            dividend_yield_pct REAL,
+            payout_ratio_pct REAL,
+            consecutive_div_increases INTEGER,
             intrinsic_value REAL,
             margin_of_safety REAL,
             undervalued   INTEGER,
@@ -67,6 +71,10 @@ def _connect(db_path=None):
         ("cash_to_debt", "REAL"),
         ("retained_earnings_growing", "INTEGER"),
         ("goodwill_pct", "REAL"),
+        ("dividend_score", "INTEGER"),
+        ("dividend_yield_pct", "REAL"),
+        ("payout_ratio_pct", "REAL"),
+        ("consecutive_div_increases", "INTEGER"),
     ]:
         if col not in existing_cols:
             conn.execute(f"ALTER TABLE scores ADD COLUMN {col} {ctype}")
@@ -90,6 +98,7 @@ def save_scores(results, db_path=None):
         roe = r.get("roe_analysis", {})
         fcf = r.get("fcf_analysis", {})
         bal = r.get("balance_analysis", {})
+        div = r.get("dividend_analysis", {})
         dcf = r.get("dcf_analysis", {})
 
         rows.append((
@@ -116,6 +125,10 @@ def save_scores(results, db_path=None):
             bal.get("cash_to_debt"),
             1 if bal.get("retained_earnings_growing") else 0,
             bal.get("goodwill_pct"),
+            div.get("dividend_score"),
+            div.get("dividend_yield_pct"),
+            div.get("payout_ratio_pct"),
+            div.get("consecutive_increases"),
             dcf.get("intrinsic_value"),
             dcf.get("margin_of_safety"),
             1 if dcf.get("undervalued") else 0,
@@ -131,9 +144,11 @@ def save_scores(results, db_path=None):
             fcf_score, fcf_current_b, fcf_yield, fcf_growing,
             balance_score, current_ratio, cash_to_debt,
             retained_earnings_growing, goodwill_pct,
+            dividend_score, dividend_yield_pct, payout_ratio_pct,
+            consecutive_div_increases,
             intrinsic_value, margin_of_safety, undervalued,
             buffett_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows)
     conn.commit()
     conn.close()

@@ -22,10 +22,12 @@ from screener import (
     analyze_roe,
     analyze_free_cash_flow,
     analyze_balance_sheet,
+    analyze_dividends,
     calculate_dcf_intrinsic_value,
     print_results,
 )
 from screener.db import save_scores
+from screener.cache import enable_cache
 
 warnings.filterwarnings("ignore")
 
@@ -42,13 +44,15 @@ def screen_stock(ticker_symbol, index, total):
     roe = analyze_roe(data)
     fcf = analyze_free_cash_flow(data)
     bal = analyze_balance_sheet(data)
+    div = analyze_dividends(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
 
     total_score = (
-        eps["eps_score"] * 0.20
-        + roe["roe_score"] * 0.20
-        + fcf["fcf_score"] * 0.25
+        eps["eps_score"] * 0.15
+        + roe["roe_score"] * 0.15
+        + fcf["fcf_score"] * 0.20
         + bal["balance_score"] * 0.15
+        + div["dividend_score"] * 0.15
         + (25 if dcf["undervalued"] else 0) * 0.20
     )
 
@@ -64,6 +68,7 @@ def screen_stock(ticker_symbol, index, total):
         "roe_analysis": roe,
         "fcf_analysis": fcf,
         "balance_analysis": bal,
+        "dividend_analysis": div,
         "dcf_analysis": dcf,
         "buffett_score": round(total_score, 1),
     }
@@ -87,6 +92,8 @@ def main():
             print("No tickers entered. Exiting.")
             return
         candidates = [t.upper().strip() for t in raw.replace(",", " ").split() if t.strip()]
+
+    enable_cache()
 
     print("=" * 80)
     print("WARREN BUFFETT STYLE STOCK SCREENER")

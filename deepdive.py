@@ -19,9 +19,11 @@ from screener import (
     analyze_roe,
     analyze_free_cash_flow,
     analyze_balance_sheet,
+    analyze_dividends,
     calculate_dcf_intrinsic_value,
 )
 from screener.db import save_scores
+from screener.cache import enable_cache
 
 warnings.filterwarnings("ignore")
 
@@ -46,13 +48,15 @@ def _run_analysis(ticker):
     roe = analyze_roe(data)
     fcf = analyze_free_cash_flow(data)
     bal = analyze_balance_sheet(data)
+    div = analyze_dividends(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
 
     total_score = (
-        eps["eps_score"] * 0.20
-        + roe["roe_score"] * 0.20
-        + fcf["fcf_score"] * 0.25
+        eps["eps_score"] * 0.15
+        + roe["roe_score"] * 0.15
+        + fcf["fcf_score"] * 0.20
         + bal["balance_score"] * 0.15
+        + div["dividend_score"] * 0.15
         + (25 if dcf["undervalued"] else 0) * 0.20
     )
 
@@ -68,6 +72,7 @@ def _run_analysis(ticker):
         "roe_analysis": roe,
         "fcf_analysis": fcf,
         "balance_analysis": bal,
+        "dividend_analysis": div,
         "dcf_analysis": dcf,
         "buffett_score": round(total_score, 1),
     }
@@ -106,6 +111,7 @@ def print_deep_dive(r):
     roe = r["roe_analysis"]
     fcf = r["fcf_analysis"]
     bal = r["balance_analysis"]
+    div = r["dividend_analysis"]
     dcf = r["dcf_analysis"]
 
     # ── Header ───────────────────────────────────────────────────
@@ -295,6 +301,58 @@ def print_deep_dive(r):
     _todo("  Buybacks? Dividends? Acquisitions? Debt repayment?")
     _todo("  Buffett prefers companies that reinvest at high returns")
 
+    # ── 5b. Dividends ────────────────────────────────────────────
+    _section("5b. DIVIDEND QUALITY")
+    div_score = div.get("dividend_score", 0)
+    pays_div = div.get("pays_dividend", False)
+    dy = div.get("dividend_yield_pct", 0)
+    po = div.get("payout_ratio_pct")
+    ci = div.get("consecutive_increases", 0)
+    div_growing = div.get("dividend_growing", False)
+    div_values = div.get("dividend_values", [])
+
+    if not pays_div:
+        _check(WARN, "This company does NOT pay a dividend")
+        print()
+        _todo("Not paying a dividend is not necessarily bad (Berkshire doesn't)")
+        _todo("Check if FCF is reinvested at high returns instead")
+    else:
+        if div_score >= 70:
+            _check(OK, f"Dividend Score: {div_score}/100 — strong dividend profile")
+        elif div_score >= 40:
+            _check(WARN, f"Dividend Score: {div_score}/100 — moderate dividend quality")
+        else:
+            _check(FAIL, f"Dividend Score: {div_score}/100 — weak dividend profile")
+
+        print(f"  Yield: {dy}% | Payout Ratio: {f'{po}%' if po is not None else 'N/A'}")
+        print(f"  Consecutive annual increases: {ci} years")
+
+        if div_values:
+            dv_str = ", ".join([f"{y}: ${v}B" for y, v in div_values])
+            print(f"  Dividend history (total paid): {dv_str}")
+
+        print()
+        if po is not None and po > 80:
+            _check(FAIL, f"Payout ratio {po:.0f}% is dangerously high — dividend may be cut")
+        elif po is not None and po > 60:
+            _check(WARN, f"Payout ratio {po:.0f}% — limited room for growth")
+        elif po is not None:
+            _check(OK, f"Payout ratio {po:.0f}% — sustainable with room to grow")
+
+        if ci >= 10:
+            _check(OK, f"Dividend Aristocrat territory: {ci} consecutive increases")
+        elif ci >= 5:
+            _check(OK, f"Solid streak: {ci} consecutive increases")
+        elif ci >= 1:
+            _check(WARN, f"Short streak: only {ci} consecutive increase(s)")
+        else:
+            _check(FAIL, "No consecutive dividend increases")
+
+    print()
+    _todo(f"Check {sym}'s dividend history on SeekingAlpha")
+    _todo("Has management committed to a dividend policy?")
+    _todo("Is the dividend funded by FCF (good) or debt (bad)?")
+
     # ── 6. Valuation ─────────────────────────────────────────────
     _section("6. VALUATION")
     iv = dcf.get("intrinsic_value")
@@ -440,6 +498,8 @@ def main():
         sys.exit(1)
 
     ticker = sys.argv[1].upper().strip()
+
+    enable_cache()
 
     result = _run_analysis(ticker)
 

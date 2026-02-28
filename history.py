@@ -12,6 +12,7 @@ Usage:
     python history.py --dates            # list all scan dates
     python history.py --date 2026-02-27  # show scores from a specific date
     python history.py --movers           # biggest score changes over time
+    python history.py --chart AAPL MSFT  # generate trend chart
 """
 
 import sys
@@ -30,6 +31,9 @@ from screener.output import (
     _fmt,
     _data_line,
     _DATA_HDR,
+    USE_COLOR,
+    _color_fmt,
+    _data_line_color,
 )
 
 warnings.filterwarnings("ignore")
@@ -53,12 +57,15 @@ def print_ticker_history(symbol, history):
     print(HEADER)
 
     print(f"\n  {'Date':<13}{_DATA_HDR}")
-    print(f"  {'─' * 115}")
+    print(f"  {'─' * 145}")
 
     prev_score = None
     for row in history:
         score = row.get("buffett_score", 0)
-        f = _fmt(row)
+        if USE_COLOR:
+            f = _color_fmt(row)
+        else:
+            f = _fmt(row)
 
         # Arrow indicator for score change
         arrow = ""
@@ -74,7 +81,10 @@ def print_ticker_history(symbol, history):
         # Override formatted score with arrow
         f["score"] = f"{score:.1f}{arrow}"
 
-        print(f"  {row['scan_date']:<13}{_data_line(f)}")
+        if USE_COLOR:
+            print(f"  {row['scan_date']:<13}{_data_line_color(f)}")
+        else:
+            print(f"  {row['scan_date']:<13}{_data_line(f)}")
 
         prev_score = score
 
@@ -151,6 +161,7 @@ def main():
         print("  python history.py --dates          # list scan dates")
         print("  python history.py --date 2026-02-27 # scores from a date")
         print("  python history.py --movers         # biggest score changes")
+        print("  python history.py --chart AAPL MSFT # generate trend chart")
         return
 
     if args[0] == "--dates":
@@ -174,6 +185,12 @@ def main():
     if args[0] == "--movers":
         movers = get_biggest_movers()
         print_movers(movers)
+        return
+
+    if args[0] == "--chart" and len(args) >= 2:
+        from screener.chart import chart_from_db
+        symbols = [s.upper().strip() for s in args[1:]]
+        chart_from_db(symbols)
         return
 
     # Treat args as ticker symbols — show history for each
