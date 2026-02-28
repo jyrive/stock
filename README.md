@@ -7,7 +7,13 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Track** — store scores in SQLite and spot changes over time
 - **Chart** — plot score trends from history as PNG charts
 - **Deep Dive** — get a tailored manual due-diligence checklist for any stock
+- **Peer Comparison** — auto-fetch same-sector peers and compare side-by-side
+- **Revenue Growth** — track organic demand vs. buyback-driven EPS
+- **Price Alerts** — flag undervalued stocks, bargains, and significant score drops
+- **Export** — save results to CSV or styled Excel spreadsheets
+- **Config** — customize scoring weights, DCF assumptions, and thresholds via YAML
 - **Cache** — transparent API response caching for faster re-runs
+- **Tests** — 35 pytest tests covering scoring, config, database, export, and alerts
 
 ---
 
@@ -18,7 +24,9 @@ git clone https://github.com/jyrive/stock.git
 cd stock
 python -m venv .venv
 source .venv/bin/activate
-pip install yfinance pandas numpy finvizfinance requests-cache matplotlib
+pip install yfinance pandas numpy finvizfinance requests-cache matplotlib pyyaml
+pip install pytest          # optional: run unit tests
+pip install openpyxl        # optional: Excel export (.xlsx)
 ```
 
 ---
@@ -63,6 +71,9 @@ python stock.py deepdive AAPL        # due-diligence checklist
 python stock.py chart AAPL MSFT      # plot score trends as PNG
 python stock.py cache stats          # show cache info
 python stock.py cache clear          # clear cached API responses
+python stock.py config show          # show current config
+python stock.py config init          # create config.yaml with defaults
+python stock.py alerts               # price target & score drop alerts
 ```
 
 Single-letter aliases work too: `a` (analyze), `s` (screen), `h` (history), `d` (deepdive), `c` (chart).
@@ -103,6 +114,8 @@ Run full fundamental analysis on specific tickers. Each stock gets scored on EPS
 python stock.py analyze               # analyze tickers from tickers.txt
 python stock.py analyze AAPL MSFT GOOGL  # analyze specific tickers
 python stock.py analyze my_watchlist.txt  # analyze tickers from a custom file
+python stock.py analyze AAPL --csv       # analyze and export results to CSV
+python stock.py analyze AAPL --xlsx      # analyze and export to styled Excel
 ```
 
 API responses are cached for 4 hours to speed up repeated runs.
@@ -149,6 +162,121 @@ Runs the analysis and prints a **tailored checklist** of what to research manual
 
 Every section adapts to the stock's actual numbers (e.g. warns about high debt only if D/E is actually high).
 
+At the end of the deep dive, a **peer comparison table** is automatically displayed showing 5 same-sector companies side-by-side with key metrics (ROE, P/E, D/E, current ratio, FCF yield, dividend yield, profit margin, revenue growth).
+
+### 5. Alerts — Price Target & Score Drop Alerts
+
+Scan your `scores.db` for actionable signals:
+
+```bash
+python stock.py alerts
+```
+
+Three alert types are generated:
+
+| Alert | What It Flags |
+|-------|---------------|
+| **Bargains** | Stocks with Buffett Score ≥55 AND margin of safety >10% |
+| **Undervalued** | All stocks where margin of safety is positive (price < intrinsic value) |
+| **Score Drops** | Stocks whose Buffett Score dropped ≥10 points between scans |
+
+Thresholds are configurable in `config.yaml` (see Configuration section below).
+
+> **Tip:** Run `python stock.py analyze` first to populate scores, then `python stock.py alerts` to see what stands out.
+
+### 6. Export — Save Results to CSV or Excel
+
+After running `analyze`, export results to a spreadsheet:
+
+```bash
+python stock.py analyze AAPL MSFT --csv       # saves scores_YYYY-MM-DD.csv
+python stock.py analyze AAPL MSFT --xlsx      # saves scores_YYYY-MM-DD.xlsx (styled)
+python stock.py analyze AAPL MSFT --excel     # same as --xlsx
+```
+
+The export includes 32 columns covering all sub-scores, key metrics, revenue CAGR, DCF valuation, and more.
+
+**CSV** works out of the box. **Excel** requires `openpyxl` (`pip install openpyxl`). If `openpyxl` is not installed, it falls back to CSV automatically.
+
+The Excel output includes:
+- Bold header row with colored background
+- Auto-sized column widths
+- Frozen top row for easy scrolling
+
+### 7. Config — Customize Scoring & Thresholds
+
+All scoring weights, DCF assumptions, and thresholds are configurable:
+
+```bash
+python stock.py config init     # create config.yaml with all defaults
+python stock.py config show     # display current settings as JSON
+python stock.py config path     # show config file location
+```
+
+**Step-by-step to customize:**
+
+1. Generate the default config file:
+   ```bash
+   python stock.py config init
+   ```
+
+2. Open `config.yaml` in your editor. It contains all tuneable parameters with comments:
+   ```yaml
+   # Scoring weights (must sum to 1.0)
+   weights:
+     eps: 0.15
+     roe: 0.15
+     fcf: 0.20
+     balance: 0.15
+     dividend: 0.15
+     dcf: 0.20
+
+   # DCF model assumptions
+   dcf:
+     growth_rate_high: 0.08    # FCF growth years 1-5 (range: 0.0 – 0.25)
+     growth_rate_low: 0.03     # FCF growth years 6-10 (range: 0.0 – 0.15)
+     terminal_growth: 0.025    # Perpetual growth (must be < discount_rate)
+     discount_rate: 0.10       # Required return / WACC (range: 0.06 – 0.15)
+     margin_required: 0.15     # MoS to flag "undervalued" (range: 0.0 – 0.50)
+
+   # Alert thresholds
+   alerts:
+     margin_of_safety_min: 0   # MoS% above this triggers alert
+     score_drop_threshold: 10  # Score drop >= this triggers alert
+   ```
+
+3. Edit the values you want to change. For example, to be more conservative:
+   ```yaml
+   dcf:
+     discount_rate: 0.12       # higher required return
+     margin_required: 0.25     # need 25% margin of safety
+   ```
+
+4. Run your analysis — it automatically picks up the config:
+   ```bash
+   python stock.py analyze AAPL
+   ```
+
+5. To reset to defaults, simply delete `config.yaml`:
+   ```bash
+   rm config.yaml
+   ```
+
+If `config.yaml` doesn't exist, all defaults are used. Partial configs work too — only override the values you want to change.
+
+### 8. Revenue Growth — Organic Demand Tracking
+
+Revenue growth is automatically tracked alongside EPS in both `analyze` and `deepdive` commands. This helps identify whether earnings growth comes from real demand or just share buybacks / cost-cutting.
+
+In the **analyze** output, each stock shows:
+- Revenue history (4 years, in billions)
+- Revenue CAGR (compound annual growth rate)
+- Whether revenue is growing overall
+
+In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue CAGR. If EPS is growing much faster than revenue, a warning flags potential buyback-driven growth.
+
+> Revenue is informational — it is NOT part of the weighted Buffett score.
+
 ### Typical Workflow
 
 ```
@@ -161,6 +289,8 @@ Every section adapts to the stock's actual numbers (e.g. warns about high debt o
  │  6. python stock.py history --movers            │ ← spot changes over time
  │  7. python stock.py chart LULU                  │ ← visualize score trend
  │  8. python stock.py deepdive LULU               │ ← manual due diligence
+ │  9. python stock.py alerts                      │ ← check price signals
+ │ 10. python stock.py analyze --csv               │ ← export for sharing
  └─────────────────────────────────────────────────┘
 ```
 
@@ -303,6 +433,16 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 | Dividend Yield | ≥2%: 25, ≥1%: 15, >0: 5 | Up to 25 |
 | Dividend Growing | Consecutive annual increases | Up to 25 |
 
+### Revenue Growth (Informational — not in Buffett Score)
+
+Revenue CAGR and trend are tracked to confirm organic demand. Not weighted into the final score.
+
+| Component | How It's Calculated | Points |
+|-----------|---------------------|--------|
+| Consistency | Fraction of years with YoY revenue growth | Up to 40 |
+| CAGR Magnitude | 2.5 pts per 1% revenue CAGR (capped) | Up to 40 |
+| Overall Growth | Latest revenue > earliest | 20 |
+
 ### Table Columns
 
 | Column | Full Name | Meaning |
@@ -325,6 +465,8 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 | **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
 | **DY%** | Dividend Yield | Annual Dividend ÷ Price × 100 |
 | **PO%** | Payout Ratio | Dividends ÷ Net Income × 100. <60% is sustainable |
+| **RevCAGR** | Revenue CAGR | Compound annual growth rate of revenue |
+| **RevG** | Revenue Growing | ✅ if latest revenue > earliest |
 | **IV$** | Intrinsic Value | DCF-estimated fair share price |
 | **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = cheap |
 | **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
@@ -338,12 +480,15 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 ```
 stock.py                       # Unified CLI entry point
 tickers.txt                    # Your tracked ticker list
+config.yaml                    # User config (created with `config init`)
+scores.db                      # SQLite database (auto-created)
 
 commands/                      # CLI command handlers
-├── analyze.py                 # Deep fundamental analysis
+├── analyze.py                 # Deep fundamental analysis + export
 ├── screen.py                  # Finviz candidate discovery
 ├── history.py                 # Score history browser
-└── deepdive.py                # Due-diligence checklist
+├── deepdive.py                # Due-diligence checklist + peer comparison
+└── alerts.py                  # Price target & score drop alerts
 
 scoring/                       # Fundamental analysis modules
 ├── eps.py                     # EPS consistency & growth
@@ -351,7 +496,8 @@ scoring/                       # Fundamental analysis modules
 ├── fcf.py                     # Free cash flow strength
 ├── balance.py                 # Balance sheet health
 ├── dividend.py                # Dividend quality
-└── dcf.py                     # DCF intrinsic value
+├── dcf.py                     # DCF intrinsic value (config-driven)
+└── revenue.py                 # Revenue growth tracking
 
 utils/                         # Shared infrastructure
 ├── data.py                    # Ticker loading + Yahoo Finance
@@ -360,17 +506,46 @@ utils/                         # Shared infrastructure
 ├── formatting.py              # Table output formatting (color-coded)
 ├── colors.py                  # ANSI terminal color helpers
 ├── cache.py                   # API response caching
-└── chart.py                   # Score trend chart generation (PNG)
+├── chart.py                   # Score trend chart generation (PNG)
+├── config.py                  # YAML config loader with defaults
+├── export.py                  # CSV / Excel export
+└── peers.py                   # Same-sector peer comparison
+
+tests/                         # Unit tests (pytest)
+├── test_scoring.py            # All 7 scoring modules
+├── test_config.py             # Config loading, merging, weights
+├── test_database.py           # Save, retrieve, migration
+├── test_export.py             # CSV/Excel output
+└── test_alerts.py             # Alert scanning logic
 ```
 
 ## Requirements
 
-- Python 3.10+
-- [yfinance](https://github.com/ranaroussi/yfinance) — financial data from Yahoo Finance
-- [finvizfinance](https://github.com/lit26/finvizfinance) — Finviz screener API
-- [requests-cache](https://github.com/requests-cache/requests-cache) — transparent API response caching
-- [matplotlib](https://matplotlib.org/) — score trend chart generation
-- pandas, numpy
+| Package | Purpose | Required? |
+|---------|---------|----------|
+| [yfinance](https://github.com/ranaroussi/yfinance) | Financial data from Yahoo Finance | **Yes** |
+| [finvizfinance](https://github.com/lit26/finvizfinance) | Finviz screener API | **Yes** |
+| [requests-cache](https://github.com/requests-cache/requests-cache) | API response caching (4hr SQLite) | **Yes** |
+| [matplotlib](https://matplotlib.org/) | Score trend chart generation (PNG) | **Yes** |
+| pandas, numpy | Data manipulation | **Yes** |
+| [pyyaml](https://pyyaml.org/) | Config file support (`config.yaml`) | **Yes** |
+| [pytest](https://pytest.org/) | Run unit tests | Optional |
+| [openpyxl](https://openpyxl.readthedocs.io/) | Styled Excel export (`.xlsx`) | Optional |
+
+Python 3.10+ required.
+
+Install all required + optional:
+```bash
+pip install yfinance pandas numpy finvizfinance requests-cache matplotlib pyyaml pytest openpyxl
+```
+
+## Running Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+35 tests cover all scoring modules, config loading, database operations, export, and alerts — all using mock data (no network calls).
 
 ## Disclaimer
 
