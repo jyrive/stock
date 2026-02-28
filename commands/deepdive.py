@@ -6,8 +6,8 @@ Runs the Buffett analysis on a single stock and prints a tailored
 checklist of what to research manually, based on the actual numbers.
 
 Usage:
-    python deepdive.py AAPL
-    python deepdive.py MSFT
+    python stock.py deepdive AAPL
+    python stock.py deepdive MSFT
 """
 
 import sys
@@ -489,9 +489,9 @@ def print_deep_dive(r):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python deepdive.py TICKER")
+        print("Usage: python stock.py deepdive TICKER")
         print()
-        print("Example: python deepdive.py AAPL")
+        print("Example: python stock.py deepdive AAPL")
         print()
         print("Runs full analysis and prints a detailed checklist of what")
         print("you need to research manually before buying.")

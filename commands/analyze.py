@@ -6,9 +6,9 @@ Deep-scores stocks on EPS growth, ROE, FCF, and DCF intrinsic value.
 Saves results to scores.db for historical tracking.
 
 Usage:
-    python analyze.py                    # analyze tickers from tickers.txt
-    python analyze.py AAPL MSFT GOOGL    # analyze specific tickers
-    python analyze.py my_picks.txt       # analyze tickers from a custom file
+    python stock.py analyze              # analyze tickers from tickers.txt
+    python stock.py analyze AAPL MSFT    # analyze specific tickers
+    python stock.py analyze picks.txt    # analyze tickers from a custom file
 """
 
 import sys

@@ -6,9 +6,9 @@ Scans online screeners (Finviz) for stocks matching Buffett-style criteria
 and shows candidates NOT already in your tickers.txt.
 
 Usage:
-    python screen.py                    # default "buffett" preset
-    python screen.py high_roe           # use a specific preset
-    python screen.py --list             # show available presets
+    python stock.py screen               # default "buffett" preset
+    python stock.py screen high_roe      # use a specific preset
+    python stock.py screen --list        # show available presets
 
 Presets:
     buffett       Classic Buffett: high ROE, profitable, large-cap, low debt
@@ -38,7 +38,7 @@ def main():
             print("Available discovery presets:\n")
             for name, info in PRESETS.items():
                 print(f"  {name:<16} {info['description']}")
-            print(f"\nUsage: python screen.py [preset]")
+            print(f"\nUsage: python stock.py screen [preset]")
             return
 
         preset = arg
@@ -48,7 +48,7 @@ def main():
     if preset not in PRESETS:
         print(f"Unknown preset: '{preset}'")
         print(f"Available: {', '.join(PRESETS.keys())}")
-        print(f"Run: python screen.py --list")
+        print(f"Run: python stock.py screen --list")
         return
 
     print(f"Scanning Finviz with '{preset}' preset...\n")

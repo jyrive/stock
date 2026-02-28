@@ -6,13 +6,13 @@ Browse historical screening scores to spot stocks that stand out
 at specific moments.
 
 Usage:
-    python history.py                    # show latest scores + movers
-    python history.py AAPL               # show score history for AAPL
-    python history.py AAPL MSFT          # compare multiple tickers
-    python history.py --dates            # list all scan dates
-    python history.py --date 2026-02-27  # show scores from a specific date
-    python history.py --movers           # biggest score changes over time
-    python history.py --chart AAPL MSFT  # generate trend chart
+    python stock.py history              # show latest scores + movers
+    python stock.py history AAPL         # show score history for AAPL
+    python stock.py history AAPL MSFT    # compare multiple tickers
+    python stock.py history --dates      # list all scan dates
+    python stock.py history --date 2026-02-27  # scores from a specific date
+    python stock.py history --movers     # biggest score changes over time
+    python stock.py history --chart AAPL # generate trend chart
 """
 
 import sys
@@ -157,11 +157,11 @@ def main():
             print_movers(movers)
 
         print("Usage:")
-        print("  python history.py AAPL            # ticker history")
-        print("  python history.py --dates          # list scan dates")
-        print("  python history.py --date 2026-02-27 # scores from a date")
-        print("  python history.py --movers         # biggest score changes")
-        print("  python history.py --chart AAPL MSFT # generate trend chart")
+        print("  python stock.py history AAPL            # ticker history")
+        print("  python stock.py history --dates          # list scan dates")
+        print("  python stock.py history --date 2026-02-27 # scores from a date")
+        print("  python stock.py history --movers         # biggest score changes")
+        print("  python stock.py history --chart AAPL MSFT # generate trend chart")
         return
 
     if args[0] == "--dates":
