@@ -78,9 +78,9 @@ python stock.py AAPL MSFT GOOGL      # same as: python stock.py analyze AAPL MSF
 Scan Finviz for stocks matching Buffett-style filters. Shows candidates **not already in your `tickers.txt`**:
 
 ```bash
-python screen.py                     # default "buffett" preset
-python screen.py high_roe            # use a specific preset
-python screen.py --list              # show available presets
+python stock.py screen                # default "buffett" preset
+python stock.py screen high_roe      # use a specific preset
+python stock.py screen --list        # show available presets
 ```
 
 #### Presets
@@ -100,9 +100,9 @@ Output includes a ready-to-paste command to analyze the new candidates.
 Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
 ```bash
-python analyze.py                    # analyze tickers from tickers.txt
-python analyze.py AAPL MSFT GOOGL    # analyze specific tickers
-python analyze.py my_watchlist.txt   # analyze tickers from a custom file
+python stock.py analyze               # analyze tickers from tickers.txt
+python stock.py analyze AAPL MSFT GOOGL  # analyze specific tickers
+python stock.py analyze my_watchlist.txt  # analyze tickers from a custom file
 ```
 
 API responses are cached for 4 hours to speed up repeated runs.
@@ -114,13 +114,13 @@ Results are saved to `scores.db` (SQLite) with today's date. Re-running on the s
 ### 3. Track — Browse Score History
 
 ```bash
-python history.py                    # latest scores + biggest movers
-python history.py AAPL               # score history for a ticker
-python history.py AAPL MSFT GOOGL    # compare multiple tickers
-python history.py --dates            # list all scan dates
-python history.py --date 2026-02-27  # show scores from a specific date
-python history.py --movers           # biggest score changes over time
-python history.py --chart AAPL MSFT  # generate score trend chart (PNG)
+python stock.py history               # latest scores + biggest movers
+python stock.py history AAPL         # score history for a ticker
+python stock.py history AAPL MSFT GOOGL  # compare multiple tickers
+python stock.py history --dates      # list all scan dates
+python stock.py history --date 2026-02-27  # show scores from a specific date
+python stock.py history --movers     # biggest score changes over time
+python stock.py history --chart AAPL MSFT  # generate score trend chart (PNG)
 ```
 
 Use this to spot stocks that **stand out at a specific moment** — a sudden score jump or drop tells you something changed, and you can investigate why.
@@ -130,7 +130,7 @@ Score trend charts are saved to `charts/` as PNG files.
 ### 4. Deep Dive — Manual Due-Diligence Checklist
 
 ```bash
-python deepdive.py AAPL              # full checklist for one stock
+python stock.py deepdive AAPL         # full checklist for one stock
 ```
 
 Runs the analysis and prints a **tailored checklist** of what to research manually:
@@ -232,16 +232,17 @@ Followed by a summary table:
 
 ---
 
-## Scoring Reference
+## Scoring Refersix sub-scores:
 
-### Buffett Score (0–100)
-
-Weighted sum of five sub-scores:
-
-$$\text{Score} = \text{EPS} \times 0.20 + \text{ROE} \times 0.20 + \text{FCF} \times 0.25 + \text{BAL} \times 0.15 + \text{DCF} \times 0.20$$
+$$\text{Score} = \text{EPS} \times 0.15 + \text{ROE} \times 0.15 + \text{FCF} \times 0.20 + \text{BAL} \times 0.15 + \text{DIV} \times 0.15 + \text{DCF} \times 0.20$$
 
 | Criteria | Weight | What It Measures |
 |----------|--------|------------------|
+| **EPS Growth** | 15% | Consistent earnings growth over 4+ years |
+| **ROE** | 15% | Return on equity >15% with reasonable debt |
+| **Free Cash Flow** | 20% | Positive, growing FCF and FCF yield |
+| **Balance Sheet** | 15% | Liquidity, debt coverage, retained earnings, goodwill |
+| **Dividends** | 15% | Dividend yield, payout sustainability, growth streak
 | **EPS Growth** | 20% | Consistent earnings growth over 4+ years |
 | **ROE** | 20% | Return on equity >15% with reasonable debt |
 | **Free Cash Flow** | 25% | Positive, growing FCF and FCF yield |
@@ -289,17 +290,16 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 
 | Component | How It’s Calculated | Points |
 |-----------|---------------------|--------|
-| Current Ratio | ≥2.0: 25, ≥1.5: 20, ≥1.0: 10 | Up to 25 |
-| Cash / Debt | ≥1.0: 25, ≥0.5: 20, ≥0.25: 10 | Up to 25 |
-| Retained Earnings | Growing ≥75% of years: 25, growing overall: 15 | Up to 25 |
-| Goodwill % | <10%: 25, <20%: 15, <30%: 5 | Up to 25 |
+| CuDividend Score (0–100)
 
-### Table Columns
+| Component | How It's Calculated | Points |
+|-----------|---------------------|--------|
+| Pays Dividend | Company pays a dividend | 25 |
+| Payout Ratio | ≤60%: 25, ≤80%: 15 | Up to 25 |
+| Dividend Yield | ≥2%: 25, ≥1%: 15, >0: 5 | Up to 25 |
+| Dividend Growing | Consecutive annual increases | Up to 25 |
 
-Both `analyze.py` and `history.py` print the same table:
-
-```
-#  Symbol  Name  Score  EPS  ROE  FCF  BAL  ROE%  D/E  CR  CAGR  FCF$B  FYld  GW%  IV$  MoS%  UV  Price  P/E
+### rrent Ratio | ≥2.0: 25, ≥1.5: 20, ≥1.0: DIV  ROE%  D/E  CR  CAGR  FCF$B  FYld  GW%  DY%  PO%  IV$  MoS%  UV  Price  P/E
 ```
 
 | Column | Full Name | Meaning |
@@ -312,6 +312,7 @@ Both `analyze.py` and `history.py` print the same table:
 | **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
 | **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
 | **BAL** | Balance Sheet Score | Liquidity, debt coverage, retained earnings, goodwill (0–100) |
+| **DIV** | Dividend Score | Dividend quality: yield, payout, growth (0–100) |
 | **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
 | **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
 | **CR** | Current Ratio | Current Assets ÷ Current Liabilities. >1.5 is healthy |
@@ -319,19 +320,19 @@ Both `analyze.py` and `history.py` print the same table:
 | **FCF$B** | FCF in Billions | Current year Free Cash Flow |
 | **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
 | **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
-| **IV$** | Intrinsic Value | DCF-estimated fair share price |
-| **MoS%** | Margin of Safety | (IV − Price) ÷ IV × 100. Positive = cheap |
-| **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
-| **Price** | Current Price | Market price at time of scan (Yahoo Finance) |
-| **P/E** | Price-to-Earnings | Share price ÷ trailing EPS |
-
-The detailed per-stock breakdown (printed above the summary table) also shows **Cash/Debt** ratio and **Retained Earnings** trend, which are part of the BAL score but not separate columns in the summary table.
-
----
-
-## Project Structure
-
-```
+| **DY%** | Dividend Yield | Annual Dividend ÷ Price × 100 |
+| **PO%** | Payout Ratio | Dividends ÷ Net Income × 100. <60% is sustainable
+| **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
+| **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
+| **BAL** | Balance Sheet Score | Liquidity, debt coverage, retained earnings, goodwill (0–100) |
+| **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
+| **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
+| **CR** | Current Ratio | Current Assets ÷ Current Liabilities. >1.5 is healthy |
+| **CAGR** | EPS Growth Rate | Compound Annual Growth Rate of EPS |
+| **FCF$B** | FCF in Billions | Current year Free Cash Flow |
+| **FYld** | FCF Yield | FCF ÷ Market Cap × 100. >3% is attractive |
+| **GW%** | Goodwill % | Goodwill ÷ Total Assets × 100. <20% is healthy |
+|tock.py                   # Unified CLI entry point
 screen.py                  # Step 1 — scan Finviz for candidates
 analyze.py                 # Step 2 — deep fundamental analysis
 history.py                 # Step 3 — browse score history
@@ -339,6 +340,25 @@ deepdive.py                # Step 4 — manual due-diligence checklist
 tickers.txt                # Your tracked ticker list
 screener/
 ├── __init__.py            # Package exports
+├── data.py                # Ticker loading + yfinance data fetching
+├── db.py                  # SQLite score storage and queries
+├── discovery.py           # Finviz screener integration
+├── analysis.py            # Re-exports from analysis sub-modules
+├── eps.py                 # EPS consistency & growth analysis
+├── roe.py                 # Return on equity & debt analysis
+├── fcf.py                 # Free cash flow strength analysis
+├── balance.py             # Balance sheet health analysis
+├── dividend.py            # Dividend quality analysis
+├── dcf.py                 # DCF intrinsic value calculation
+├── output.py              # Shared table formatting (color-coded)
+├── colors.py              # ANSI terminal color helpers
+├── cache.py               # API response caching (SQLite-backed)
+└── chart.py               # Score trend chart generation (PNG)igence checklist
+tickers.txt                # Your tracked ticker list
+screener/
+├─[requests-cache](https://github.com/requests-cache/requests-cache) — transparent API response caching
+- [matplotlib](https://matplotlib.org/) — score trend chart generation
+- ─ __init__.py            # Package exports
 ├── data.py                # Ticker loading + yfinance data fetching
 ├── db.py                  # SQLite score storage and queries
 ├── discovery.py           # Finviz screener integration
