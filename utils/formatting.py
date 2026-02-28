@@ -39,6 +39,9 @@ def _fmt(row):
         "uv": "✅" if row.get("undervalued") else "❌",
         "price": f"${row['current_price']:.2f}" if row.get("current_price") else "-",
         "pe": f"{row['trailing_pe']:.1f}" if row.get("trailing_pe") else "-",
+        "tech": f"{row['tech_score']:.0f}" if row.get("tech_score") is not None else "-",
+        "rsi": f"{row['rsi_14']:.0f}" if row.get("rsi_14") is not None else "-",
+        "vs200": f"{row['price_vs_sma200_pct']:+.1f}%" if row.get("price_vs_sma200_pct") is not None else "-",
     }
 
 
@@ -84,13 +87,17 @@ def _color_fmt(row):
         "uv": good("✅") if row.get("undervalued") else bad("❌"),
         "price": f"${row['current_price']:.2f}" if row.get("current_price") else dim("-"),
         "pe": (good(f"{row['trailing_pe']:.1f}") if row["trailing_pe"] < 15 else warn(f"{row['trailing_pe']:.1f}") if row["trailing_pe"] < 25 else bad(f"{row['trailing_pe']:.1f}")) if row.get("trailing_pe") else dim("-"),
+        "tech": (good(f"{row['tech_score']:.0f}") if row["tech_score"] >= 60 else warn(f"{row['tech_score']:.0f}") if row["tech_score"] >= 35 else bad(f"{row['tech_score']:.0f}")) if row.get("tech_score") is not None else dim("-"),
+        "rsi": (good(f"{row['rsi_14']:.0f}") if row["rsi_14"] < 35 else bad(f"{row['rsi_14']:.0f}") if row["rsi_14"] > 65 else f"{row['rsi_14']:.0f}") if row.get("rsi_14") is not None else dim("-"),
+        "vs200": (good(f"{row['price_vs_sma200_pct']:+.1f}%") if row["price_vs_sma200_pct"] < -5 else bad(f"{row['price_vs_sma200_pct']:+.1f}%") if row["price_vs_sma200_pct"] > 10 else f"{row['price_vs_sma200_pct']:+.1f}%") if row.get("price_vs_sma200_pct") is not None else dim("-"),
     }
 
 
 _DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}{'BAL':>5}{'DIV':>5}{'REV':>5}"
              f"{'ROE%':>7}{'D/E':>7}{'CR':>6}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}{'GW%':>5}"
              f"{'DY%':>6}{'PO%':>5}"
-             f"{'IV$':>10}{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}")
+             f"{'IV$':>10}{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}"
+             f"{'Tech':>6}{'RSI':>5}{'v200':>7}")
 
 
 def _data_line(f):
@@ -98,7 +105,8 @@ def _data_line(f):
     return (f"{f['score']:>6}{f['eps']:>5}{f['roe']:>5}{f['fcf']:>5}{f['bal']:>5}{f['div']:>5}{f['rev']:>5}"
             f"{f['roe_pct']:>7}{f['de']:>7}{f['cr']:>6}{f['cagr']:>7}{f['fcf_b']:>7}{f['fcf_y']:>6}{f['gw']:>5}"
             f"{f['dy']:>6}{f['po']:>5}"
-            f"{f['iv']:>10}{f['mos']:>8}{f['uv']:>4}{f['price']:>10}{f['pe']:>7}")
+            f"{f['iv']:>10}{f['mos']:>8}{f['uv']:>4}{f['price']:>10}{f['pe']:>7}"
+            f"{f['tech']:>6}{f['rsi']:>5}{f['vs200']:>7}")
 
 
 def _data_line_color(f):
@@ -118,7 +126,8 @@ def _data_line_color(f):
             _pad(f['cagr'], 7) + _pad(f['fcf_b'], 7) + _pad(f['fcf_y'], 6) +
             _pad(f['gw'], 5) + _pad(f['dy'], 6) + _pad(f['po'], 5) +
             _pad(f['iv'], 10) + _pad(f['mos'], 8) + _pad(f['uv'], 4) +
-            _pad(f['price'], 10) + _pad(f['pe'], 7))
+            _pad(f['price'], 10) + _pad(f['pe'], 7) +
+            _pad(f['tech'], 6) + _pad(f['rsi'], 5) + _pad(f['vs200'], 7))
 
 
 def print_legend():
@@ -129,6 +138,7 @@ def print_legend():
     print(f"  DY% = Dividend Yield | PO% = Payout Ratio")
     print(f"  IV$ = DCF Intrinsic Value | MoS% = Margin of Safety")
     print(f"  UV = Undervalued (IV > Price × 1.15) | CAGR = EPS growth rate")
+    print(f"  Tech = Technical entry score (0-100) | RSI = 14-day RSI | v200 = Price vs 200-day MA")
     print()
 
 
@@ -164,6 +174,9 @@ def flatten_result(r):
         "revenue_cagr": r.get("revenue_analysis", {}).get("revenue_cagr"),
         "revenue_growing": r.get("revenue_analysis", {}).get("revenue_growing"),
         "revenue_score": r.get("revenue_analysis", {}).get("revenue_score"),
+        "tech_score": r.get("tech_analysis", {}).get("tech_score"),
+        "rsi_14": r.get("tech_analysis", {}).get("rsi_14"),
+        "price_vs_sma200_pct": r.get("tech_analysis", {}).get("price_vs_sma200_pct"),
     }
 
 
@@ -317,6 +330,29 @@ def print_results(results, top_n=20):
             )
         else:
             print("     Could not calculate DCF")
+
+        # Technical Analysis
+        tech = r.get("tech_analysis", {})
+        tech_score = tech.get("tech_score")
+        if tech_score is not None:
+            from scoring.technical import _entry_rating
+            stars, label = _entry_rating(tech_score, r["buffett_score"])
+            print(f"\n  📉 TECHNICAL ENTRY SIGNALS (Score: {tech_score}/100)")
+            rsi = tech.get("rsi_14")
+            pct200 = tech.get("price_vs_sma200_pct")
+            bb_pos = tech.get("bb_position")
+            w52 = tech.get("week52_position")
+            print(f"     RSI(14): {f'{rsi:.1f}' if rsi is not None else 'N/A'}"
+                  f" | vs 200 MA: {f'{pct200:+.1f}%' if pct200 is not None else 'N/A'}"
+                  f" | BB: {f'{bb_pos:.0%}' if bb_pos is not None else 'N/A'}"
+                  f" | 52w: {f'{w52:.0%}' if w52 is not None else 'N/A'}")
+            macd_data = tech.get("macd")
+            if macd_data:
+                print(f"     MACD: {macd_data['crossover'].title()} (hist: {macd_data['histogram']:+.3f})")
+            print(f"     Entry: {stars} {label}")
+            signals = tech.get("signals", [])
+            for s in signals:
+                print(f"     {s}")
 
         print()
 

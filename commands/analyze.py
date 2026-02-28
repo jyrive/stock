@@ -24,6 +24,7 @@ from scoring import (
     calculate_dcf_intrinsic_value,
     analyze_revenue_growth,
 )
+from scoring.technical import analyze_technical
 from utils.data import load_tickers, get_financial_data
 from utils.formatting import print_results, print_summary_table, flatten_result
 from utils.database import save_scores
@@ -64,6 +65,7 @@ def screen_stock(ticker_symbol, index, total):
     div = analyze_dividends(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
     rev = analyze_revenue_growth(data)
+    tech = analyze_technical(ticker_symbol)
 
     total_score = _compute_score(eps, roe, fcf, bal, div, dcf, rev)
 
@@ -82,6 +84,7 @@ def screen_stock(ticker_symbol, index, total):
         "dividend_analysis": div,
         "dcf_analysis": dcf,
         "revenue_analysis": rev,
+        "tech_analysis": tech,
         "buffett_score": total_score,
     }
 

@@ -4,6 +4,7 @@ Unified CLI — single entry point for the Buffett Stock Screener toolkit.
 
 Usage:
     python stock.py analyze [TICKERS...]       Fundamental analysis (EPS, ROE, FCF, BAL, DIV, DCF)
+    python stock.py technical [TICKERS...]     Technical entry-timing signals (RSI, SMA, BB, MACD)
     python stock.py screen [PRESET]            Discover candidates via Finviz
     python stock.py history [TICKER|--movers]  Browse score history from SQLite
     python stock.py deepdive TICKER            Manual due-diligence checklist
@@ -37,6 +38,11 @@ Commands:
                                  Scores EPS, ROE, FCF, Balance Sheet,
                                  Dividends, and DCF intrinsic value.
                                  Saves results to scores.db.
+
+  technical [tickers|portfolio|  Technical entry-timing analysis
+    watchlist]                   RSI(14), SMA(50/200), Bollinger Bands,
+                                 MACD crossover, 52-week position.
+                                 Tech Score 0-100 (higher = buy signal).
 
   screen [preset]                Discover new candidates via Finviz
                                  Presets: buffett, high_roe, fcf_machines, ...
@@ -112,6 +118,8 @@ Examples:
   python stock.py deepdive V
   python stock.py chart AAPL MSFT
   python stock.py cache stats
+  python stock.py technical AAPL                  # entry timing signals
+  python stock.py technical portfolio              # check portfolio entries
   python stock.py alerts
 """)
 
@@ -209,6 +217,13 @@ def cmd_compare(args):
     main()
 
 
+def cmd_technical(args):
+    """Technical entry-timing analysis."""
+    sys.argv = ["technical.py"] + args
+    from commands.technical import main
+    main()
+
+
 def cmd_daily(args):
     """Daily portfolio check."""
     from commands.workflow import daily
@@ -257,6 +272,7 @@ COMMANDS = {
     "watchlist": cmd_watchlist,
     "discover": cmd_discover,
     "compare": cmd_compare,
+    "technical": cmd_technical,
     "daily": cmd_daily,
     "weekly": cmd_weekly,
     "monthly": cmd_monthly,
@@ -269,6 +285,7 @@ COMMANDS["h"] = cmd_history
 COMMANDS["d"] = cmd_deepdive
 COMMANDS["c"] = cmd_chart
 COMMANDS["p"] = cmd_portfolio
+COMMANDS["t"] = cmd_technical
 COMMANDS["w"] = cmd_watchlist
 
 

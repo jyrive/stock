@@ -53,6 +53,9 @@ def _connect(db_path=None):
             revenue_cagr  REAL,
             revenue_growing INTEGER,
             revenue_score INTEGER,
+            tech_score    INTEGER,
+            rsi_14        REAL,
+            price_vs_sma200_pct REAL,
             buffett_score REAL,
             PRIMARY KEY (symbol, scan_date)
         )
@@ -81,6 +84,9 @@ def _connect(db_path=None):
         ("revenue_cagr", "REAL"),
         ("revenue_growing", "INTEGER"),
         ("revenue_score", "INTEGER"),
+        ("tech_score", "INTEGER"),
+        ("rsi_14", "REAL"),
+        ("price_vs_sma200_pct", "REAL"),
     ]:
         if col not in existing_cols:
             conn.execute(f"ALTER TABLE scores ADD COLUMN {col} {ctype}")
@@ -107,6 +113,7 @@ def save_scores(results, db_path=None):
         div = r.get("dividend_analysis", {})
         dcf = r.get("dcf_analysis", {})
         rev = r.get("revenue_analysis", {})
+        tech = r.get("tech_analysis", {})
 
         rows.append((
             r["symbol"],
@@ -142,6 +149,9 @@ def save_scores(results, db_path=None):
             rev.get("revenue_cagr"),
             1 if rev.get("revenue_growing") else 0,
             rev.get("revenue_score"),
+            tech.get("tech_score"),
+            tech.get("rsi_14"),
+            tech.get("price_vs_sma200_pct"),
             r.get("buffett_score"),
         ))
 
@@ -158,8 +168,9 @@ def save_scores(results, db_path=None):
             consecutive_div_increases,
             intrinsic_value, margin_of_safety, undervalued,
             revenue_cagr, revenue_growing, revenue_score,
+            tech_score, rsi_14, price_vs_sma200_pct,
             buffett_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows)
     conn.commit()
     conn.close()
