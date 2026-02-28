@@ -236,8 +236,9 @@ python stock.py config path     # show config file location
      roe: 0.15
      fcf: 0.20
      balance: 0.15
-     dividend: 0.15
-     dcf: 0.20
+     dividend: 0.05       # growth-friendly: low weight
+     dcf: 0.15
+     revenue: 0.15        # rewards organic growth
 
    # DCF model assumptions
    dcf:
@@ -448,7 +449,7 @@ Followed by a summary table:
 
 ### Buffett Score (0–100)
 
-Weighted sum of six sub-scores:
+Weighted sum of seven sub-scores:
 
 | Criteria | Weight | What It Measures |
 |----------|--------|------------------|
@@ -456,8 +457,9 @@ Weighted sum of six sub-scores:
 | **ROE** | 15% | Return on equity >15% with reasonable debt |
 | **Free Cash Flow** | 20% | Positive, growing FCF and FCF yield |
 | **Balance Sheet** | 15% | Liquidity, debt coverage, retained earnings, goodwill |
-| **Dividends** | 15% | Dividend yield, payout sustainability, growth streak |
-| **Valuation (DCF)** | 20% | Margin of safety based on discounted cash flow |
+| **Dividends** | 5% | Capital allocation quality — penalises unsustainable payouts, neutral for no dividend |
+| **Valuation (DCF)** | 15% | Margin of safety based on discounted cash flow |
+| **Revenue Growth** | 15% | Organic demand — confirms earnings growth is real |
 
 ### EPS Score (0–100)
 
@@ -494,7 +496,7 @@ Binary check: is the stock undervalued based on a conservative DCF model?
 | Terminal growth rate | 2.5% |
 | Discount rate | 10% |
 
-Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.20 = 5 pts to final score).
+Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.15 = 3.75 pts to final score).
 
 ### Balance Sheet Health (0–100)
 
@@ -505,18 +507,23 @@ Undervalued = intrinsic value > current price × 1.15. If yes → 25 pts (× 0.2
 | Retained Earnings | Growing ≥75% of years: 25, growing overall: 15 | Up to 25 |
 | Goodwill % | <10%: 25, <20%: 15, <30%: 5 | Up to 25 |
 
-### Dividend Score (0–100)
+### Dividend Score (0–100) — Growth-Friendly
 
-| Component | How It's Calculated | Points |
-|-----------|---------------------|--------|
-| Pays Dividend | Company pays a dividend | 25 |
-| Payout Ratio | ≤60%: 25, ≤80%: 15 | Up to 25 |
-| Dividend Yield | ≥2%: 25, ≥1%: 15, >0: 5 | Up to 25 |
-| Dividend Growing | Consecutive annual increases | Up to 25 |
+Growth-friendly scoring: companies that pay **no dividend** are NOT penalised (neutral 50/100). The score primarily flags *unsustainable* payouts as a danger signal.
 
-### Revenue Growth (Informational — not in Buffett Score)
+| Scenario | Score | Rationale |
+|----------|-------|-----------|
+| **No dividend** (reinvests in growth) | **50** | Neutral — not a penalty |
+| Pays dividend, payout ≤40% | 80–100 | Very sustainable |
+| Pays dividend, payout 40–60% | 70–95 | Sustainable |
+| Pays dividend, payout 60–80% | 45–75 | Watch closely |
+| Pays dividend, payout >80% | 0–40 | ⚠️ Danger signal! |
 
-Revenue CAGR and trend are tracked to confirm organic demand. Not weighted into the final score.
+For dividend payers, the score combines: payout sustainability (40 pts), yield quality (25 pts), dividend growth (20 pts), and a base credit (15 pts).
+
+### Revenue Growth (0–100) — Weighted 15%
+
+Revenue growth is now part of the weighted Buffett Score, rewarding companies with real organic demand growth.
 
 | Component | How It's Calculated | Points |
 |-----------|---------------------|--------|
@@ -536,7 +543,8 @@ Revenue CAGR and trend are tracked to confirm organic demand. Not weighted into 
 | **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
 | **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |
 | **BAL** | Balance Sheet Score | Liquidity, debt coverage, retained earnings, goodwill (0–100) |
-| **DIV** | Dividend Score | Dividend quality: yield, payout, growth (0–100) |
+| **DIV** | Dividend Score | Capital allocation quality (0–100). 50 = no dividend (neutral) |
+| **REV** | Revenue Score | Revenue growth strength (0–100). Weighted 15% |
 | **ROE%** | Return on Equity | Net Income ÷ Equity × 100 |
 | **D/E** | Debt-to-Equity | Total Debt ÷ Equity. <150 is reasonable |
 | **CR** | Current Ratio | Current Assets ÷ Current Liabilities. >1.5 is healthy |

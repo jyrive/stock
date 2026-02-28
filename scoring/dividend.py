@@ -1,14 +1,19 @@
-"""Dividend analysis: payout ratio, growth, yield, and consistency."""
+"""Dividend / capital-allocation analysis.
+
+Growth-friendly scoring: companies that pay no dividend are NOT penalised
+(they score a neutral 50/100).  The score primarily flags *bad* capital
+allocation — unsustainable payout ratios are heavily penalised.
+"""
 
 
 def analyze_dividends(data):
     """Analyze dividend quality and sustainability.
 
-    Sub-scores (25 pts each, total 100):
-      - Pays a dividend at all              (25)
-      - Payout ratio ≤60%                   (25)
-      - Dividend yield ≥1%                  (25)
-      - Dividend growing (5-yr history)     (25)
+    Scoring philosophy (growth-friendly):
+      - No dividend → 50/100 (neutral — reinvesting in growth is fine)
+      - Sustainable dividend (payout ≤60%) → 75-100
+      - Moderate dividend (payout 60-80%) → 50-75
+      - Unsustainable dividend (payout >80%) → 0-40 (WARNING)
 
     Returns dict with dividend_score 0-100 and supporting metrics.
     """
@@ -66,49 +71,56 @@ def analyze_dividends(data):
             else:
                 break
 
-    # ── Score calculation ────────────────────────────────────────
-    score = 0
-
-    # 1. Pays a dividend (25 pts)
+    # ── Score calculation (growth-friendly) ──────────────────────
     pays_dividend = div_yield_pct > 0 or annual_div > 0
-    if pays_dividend:
-        score += 25
 
-    # 2. Payout ratio sustainable (25 pts)
-    if payout_pct is not None:
-        if payout_pct <= 40:
-            score += 25
-        elif payout_pct <= 60:
-            score += 20
-        elif payout_pct <= 80:
-            score += 10
-        # >80% = 0 pts (unsustainable)
-    elif not pays_dividend:
-        score += 0  # No dividend, no payout score
+    if not pays_dividend:
+        # ── No dividend: neutral baseline (50/100) ──────────────
+        # Company reinvests everything into growth — that's OK.
+        score = 50
     else:
-        score += 12  # Unknown payout — half credit
+        # ── Pays dividend: score based on sustainability ────────
+        score = 0
 
-    # 3. Dividend yield quality (25 pts)
-    if div_yield_pct >= 3.0:
-        score += 25
-    elif div_yield_pct >= 2.0:
-        score += 20
-    elif div_yield_pct >= 1.0:
-        score += 15
-    elif div_yield_pct >= 0.5:
-        score += 10
-    elif div_yield_pct > 0:
-        score += 5
+        # 1. Payout ratio sustainability (up to 40 pts)
+        #    This is the KEY metric — unsustainable = danger signal
+        if payout_pct is not None:
+            if payout_pct <= 40:
+                score += 40   # Very sustainable
+            elif payout_pct <= 60:
+                score += 35   # Sustainable
+            elif payout_pct <= 80:
+                score += 20   # Watch closely
+            elif payout_pct <= 100:
+                score += 5    # Risky
+            # >100% = 0 pts (paying out more than earnings — danger!)
+        else:
+            score += 20  # Unknown payout — cautious half credit
 
-    # 4. Dividend growth (25 pts)
-    if consec_increases >= 4:
-        score += 25  # 4+ consecutive years of growth
-    elif consec_increases >= 2:
+        # 2. Dividend yield quality (up to 25 pts)
+        if div_yield_pct >= 3.0:
+            score += 25
+        elif div_yield_pct >= 2.0:
+            score += 20
+        elif div_yield_pct >= 1.0:
+            score += 15
+        elif div_yield_pct >= 0.5:
+            score += 10
+        elif div_yield_pct > 0:
+            score += 5
+
+        # 3. Dividend growth / consistency (up to 20 pts)
+        if consec_increases >= 4:
+            score += 20
+        elif consec_increases >= 2:
+            score += 12
+        elif div_growing:
+            score += 8
+        elif pays_dividend:
+            score += 3  # At least pays
+
+        # 4. Base credit for being a dividend payer (15 pts)
         score += 15
-    elif div_growing:
-        score += 10
-    elif pays_dividend:
-        score += 5  # At least pays something
 
     return {
         "dividend_score": score,

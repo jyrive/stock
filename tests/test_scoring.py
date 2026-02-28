@@ -242,6 +242,8 @@ class TestDividend:
         result = analyze_dividends(data)
         assert result["pays_dividend"] is False
         assert result["dividend_yield_pct"] == 0.0
+        # Growth-friendly: no dividend = neutral 50/100 (not penalised)
+        assert result["dividend_score"] == 50
 
 
 # ═══════════════════════════════════════════════════════════════════

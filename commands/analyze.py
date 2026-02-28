@@ -33,16 +33,18 @@ from utils.config import get_weights
 warnings.filterwarnings("ignore")
 
 
-def _compute_score(eps, roe, fcf, bal, div, dcf):
+def _compute_score(eps, roe, fcf, bal, div, dcf, rev=None):
     """Compute weighted Buffett score from sub-scores."""
     w = get_weights()
+    rev_score = rev.get("revenue_score", 0) if rev else 0
     return round(
         eps["eps_score"] * w["eps"]
         + roe["roe_score"] * w["roe"]
         + fcf["fcf_score"] * w["fcf"]
         + bal["balance_score"] * w["balance"]
         + div["dividend_score"] * w["dividend"]
-        + (25 if dcf["undervalued"] else 0) * w["dcf"],
+        + (25 if dcf["undervalued"] else 0) * w["dcf"]
+        + rev_score * w.get("revenue", 0),
         1,
     )
 
@@ -63,7 +65,7 @@ def screen_stock(ticker_symbol, index, total):
     dcf = calculate_dcf_intrinsic_value(data, fcf)
     rev = analyze_revenue_growth(data)
 
-    total_score = _compute_score(eps, roe, fcf, bal, div, dcf)
+    total_score = _compute_score(eps, roe, fcf, bal, div, dcf, rev)
 
     return {
         "symbol": data["symbol"],

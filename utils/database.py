@@ -52,6 +52,7 @@ def _connect(db_path=None):
             undervalued   INTEGER,
             revenue_cagr  REAL,
             revenue_growing INTEGER,
+            revenue_score INTEGER,
             buffett_score REAL,
             PRIMARY KEY (symbol, scan_date)
         )
@@ -79,6 +80,7 @@ def _connect(db_path=None):
         ("consecutive_div_increases", "INTEGER"),
         ("revenue_cagr", "REAL"),
         ("revenue_growing", "INTEGER"),
+        ("revenue_score", "INTEGER"),
     ]:
         if col not in existing_cols:
             conn.execute(f"ALTER TABLE scores ADD COLUMN {col} {ctype}")
@@ -139,6 +141,7 @@ def save_scores(results, db_path=None):
             1 if dcf.get("undervalued") else 0,
             rev.get("revenue_cagr"),
             1 if rev.get("revenue_growing") else 0,
+            rev.get("revenue_score"),
             r.get("buffett_score"),
         ))
 
@@ -154,9 +157,9 @@ def save_scores(results, db_path=None):
             dividend_score, dividend_yield_pct, payout_ratio_pct,
             consecutive_div_increases,
             intrinsic_value, margin_of_safety, undervalued,
-            revenue_cagr, revenue_growing,
+            revenue_cagr, revenue_growing, revenue_score,
             buffett_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows)
     conn.commit()
     conn.close()

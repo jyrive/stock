@@ -25,12 +25,12 @@ class TestConfig:
     def test_get_weights_normalizes(self):
         from utils.config import get_weights
 
-        cfg = {"weights": {"eps": 1, "roe": 1, "fcf": 1, "balance": 1, "dividend": 1, "dcf": 1}}
+        cfg = {"weights": {"eps": 1, "roe": 1, "fcf": 1, "balance": 1, "dividend": 1, "dcf": 1, "revenue": 1}}
         w = get_weights(cfg)
         total = sum(w.values())
         assert abs(total - 1.0) < 0.01
-        # Each should be ~1/6
-        assert abs(w["eps"] - 1 / 6) < 0.01
+        # Each should be ~1/7
+        assert abs(w["eps"] - 1 / 7) < 0.01
 
     def test_get_dcf_params(self):
         from utils.config import get_dcf_params, DEFAULTS

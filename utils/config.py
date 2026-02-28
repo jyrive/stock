@@ -21,8 +21,9 @@ DEFAULTS = {
         "roe": 0.15,        # Return on Equity weight
         "fcf": 0.20,        # Free Cash Flow weight
         "balance": 0.15,    # Balance sheet health weight
-        "dividend": 0.15,   # Dividend quality weight
-        "dcf": 0.20,        # DCF intrinsic-value weight
+        "dividend": 0.05,   # Dividend / capital-allocation weight (growth-friendly)
+        "dcf": 0.15,        # DCF intrinsic-value weight
+        "revenue": 0.15,    # Revenue growth weight (rewards organic growth)
     },
 
     # ── DCF model assumptions ────────────────────────────────────

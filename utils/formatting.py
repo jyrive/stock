@@ -24,6 +24,7 @@ def _fmt(row):
         "fcf": _ss("fcf_score"),
         "bal": _ss("balance_score"),
         "div": _ss("dividend_score"),
+        "rev": _ss("revenue_score"),
         "roe_pct": f"{row['roe_pct']:.0f}%" if row.get("roe_pct") else "-",
         "de": f"{row['debt_to_equity']:.0f}" if row.get("debt_to_equity") is not None else "-",
         "cr": f"{row['current_ratio']:.1f}" if row.get("current_ratio") is not None else "-",
@@ -68,6 +69,7 @@ def _color_fmt(row):
         "fcf": _sub_score(fcf_s),
         "bal": _sub_score(bal_s),
         "div": _sub_score(div_s),
+        "rev": _sub_score(row.get("revenue_score")),
         "roe_pct": pct_color(row.get("roe_pct"), high=15, mid=10) if row.get("roe_pct") else dim("-"),
         "de": ratio_color(row.get("debt_to_equity"), good_thresh=0, warn_thresh=0, fmt=".0f") if row.get("debt_to_equity") is not None else dim("-"),
         "cr": ratio_color(row.get("current_ratio"), good_thresh=1.5, warn_thresh=1.0) if row.get("current_ratio") is not None else dim("-"),
@@ -85,7 +87,7 @@ def _color_fmt(row):
     }
 
 
-_DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}{'BAL':>5}{'DIV':>5}"
+_DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}{'BAL':>5}{'DIV':>5}{'REV':>5}"
              f"{'ROE%':>7}{'D/E':>7}{'CR':>6}{'CAGR':>7}{'FCF$B':>7}{'FYld':>6}{'GW%':>5}"
              f"{'DY%':>6}{'PO%':>5}"
              f"{'IV$':>10}{'MoS%':>8}{'UV':>4}{'Price':>10}{'P/E':>7}")
@@ -93,7 +95,7 @@ _DATA_HDR = (f"{'Score':>6}{'EPS':>5}{'ROE':>5}{'FCF':>5}{'BAL':>5}{'DIV':>5}"
 
 def _data_line(f):
     """Format data columns from a _fmt() dict."""
-    return (f"{f['score']:>6}{f['eps']:>5}{f['roe']:>5}{f['fcf']:>5}{f['bal']:>5}{f['div']:>5}"
+    return (f"{f['score']:>6}{f['eps']:>5}{f['roe']:>5}{f['fcf']:>5}{f['bal']:>5}{f['div']:>5}{f['rev']:>5}"
             f"{f['roe_pct']:>7}{f['de']:>7}{f['cr']:>6}{f['cagr']:>7}{f['fcf_b']:>7}{f['fcf_y']:>6}{f['gw']:>5}"
             f"{f['dy']:>6}{f['po']:>5}"
             f"{f['iv']:>10}{f['mos']:>8}{f['uv']:>4}{f['price']:>10}{f['pe']:>7}")
@@ -111,6 +113,7 @@ def _data_line_color(f):
 
     return (_pad(f['score'], 6) + _pad(f['eps'], 5) + _pad(f['roe'], 5) +
             _pad(f['fcf'], 5) + _pad(f['bal'], 5) + _pad(f['div'], 5) +
+            _pad(f['rev'], 5) +
             _pad(f['roe_pct'], 7) + _pad(f['de'], 7) + _pad(f['cr'], 6) +
             _pad(f['cagr'], 7) + _pad(f['fcf_b'], 7) + _pad(f['fcf_y'], 6) +
             _pad(f['gw'], 5) + _pad(f['dy'], 6) + _pad(f['po'], 5) +
@@ -120,7 +123,7 @@ def _data_line_color(f):
 
 def print_legend():
     """Print the shared column legend."""
-    print(f"\n  EPS/ROE/FCF/BAL/DIV = sub-scores (0-100) | D/E = Debt-to-Equity | "
+    print(f"\n  EPS/ROE/FCF/BAL/DIV/REV = sub-scores (0-100) | D/E = Debt-to-Equity | "
           f"CR = Current Ratio")
     print(f"  FCF$B = FCF in billions | FYld = FCF Yield | GW% = Goodwill % of Assets")
     print(f"  DY% = Dividend Yield | PO% = Payout Ratio")
@@ -160,6 +163,7 @@ def flatten_result(r):
         "undervalued": r["dcf_analysis"].get("undervalued"),
         "revenue_cagr": r.get("revenue_analysis", {}).get("revenue_cagr"),
         "revenue_growing": r.get("revenue_analysis", {}).get("revenue_growing"),
+        "revenue_score": r.get("revenue_analysis", {}).get("revenue_score"),
     }
 
 
@@ -175,7 +179,7 @@ def print_summary_table(scores, title="Scores"):
     print(hdr)
 
     print(f"  {'#':<5}{'Symbol':<8}{'Name':<28}{_DATA_HDR}")
-    print(f"  {'─' * 145}")
+    print(f"  {'─' * 150}")
 
     for i, s in enumerate(scores, 1):
         name = (s.get("name") or "?")[:26]
@@ -220,7 +224,8 @@ def print_results(results, top_n=20):
         # Revenue
         rev = r.get("revenue_analysis", {})
         if rev.get("revenue_values"):
-            print(f"\n  📊 REVENUE GROWTH")
+            rev_score = rev.get("revenue_score", 0)
+            print(f"\n  📊 REVENUE GROWTH (Score: {rev_score}/100)")
             rev_str = " → ".join([f"{y}: ${v}B" for y, v in rev["revenue_values"]])
             print(f"     Revenue: {rev_str}")
             rev_cagr = rev.get("revenue_cagr")
