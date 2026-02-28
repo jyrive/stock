@@ -6,6 +6,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, dividends, and DCF intrinsic value
 - **Technical** — entry-timing signals using RSI, SMA, Bollinger Bands, MACD, and 52-week range
 - **Macro** — global macro environment dashboard (VIX, yields, S&P/STOXX/Nikkei/EM, commodities, USD)
+- **Verdict** — triangulated decision engine: converge Fundamental + Technical + Macro into actionable verdicts
 - **Track** — store scores in SQLite and spot changes over time
 - **Chart** — plot score trends from history as PNG charts
 - **Deep Dive** — get a tailored manual due-diligence checklist for any stock
@@ -21,6 +22,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Cache** — transparent API response caching for faster re-runs
 - **Technical** — spot buying opportunities with RSI, moving averages, Bollinger Bands, MACD, and 52-week position
 - **Macro** — global macro environment score (0–100) for position sizing context
+- **Verdict** — triangulation engine for converged buy/hold/avoid decisions
 - **Tests** — 47 pytest tests covering scoring, config, database, export, alerts, and list management
 
 ---
@@ -75,6 +77,7 @@ All commands are available through `stock.py`:
 python stock.py analyze AAPL MSFT    # deep fundamental analysis
 python stock.py technical AAPL       # entry-timing signals (RSI, SMA, BB, MACD)
 python stock.py macro                # global macro environment dashboard
+python stock.py verdict AAPL         # triangulated verdict (Fund+Tech+Macro)
 python stock.py screen high_roe      # discover candidates via Finviz
 python stock.py history --movers     # browse score history
 python stock.py deepdive AAPL        # due-diligence checklist
@@ -90,7 +93,7 @@ python stock.py discover             # scan all presets for new ideas
 python stock.py compare portfolio watchlist  # side-by-side comparison
 ```
 
-Single-letter aliases work too: `a` (analyze), `t` (technical), `m` (macro), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
+Single-letter aliases work too: `a` (analyze), `t` (technical), `m` (macro), `v` (verdict), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
 
 If you pass tickers without a command, it defaults to `analyze`:
 
@@ -194,7 +197,46 @@ Macro score interpretation:
 
 Macro analysis is automatically included in all workflow commands (daily one-liner, weekly compact, monthly full dashboard).
 
-### 4. Analyze — Deep-Score Stocks
+### 4. Verdict — Triangulated Decision Engine
+
+Converge all three scores into a single actionable verdict — inspired by Pietari Laurila's triangulation approach. Instead of averaging, the engine classifies each score into a zone and checks whether independent signals *agree*:
+
+```bash
+python stock.py verdict AAPL              # single stock (full card)
+python stock.py verdict AAPL MSFT GOOGL   # side-by-side table
+python stock.py verdict --portfolio       # all portfolio stocks
+python stock.py verdict --watchlist       # all watchlist stocks
+python stock.py verdict --all             # portfolio + watchlist
+python stock.py v AAPL                    # alias
+```
+
+**Zone classification:**
+
+| Zone | Score | Signal |
+|------|-------|--------|
+| 🟢 Strong | ≥ 70 | Favourable |
+| 🟡 Neutral | 40–69 | Mixed |
+| 🔴 Weak | < 40 | Unfavourable |
+
+**Verdict matrix:**
+
+| Zone Pattern | Verdict | Position % |
+|---|---|---|
+| 🟢🟢🟢 | **STRONG BUY** | 100–125% |
+| 🟢🟢🟡 | **BUY** | 75–100% |
+| 🟢🟡🟡 | **ACCUMULATE** | 50–75% |
+| 🟡🟡🟡 | **NEUTRAL** | 25–50% |
+| 🟢🟢🔴 | **WATCH** — 1 veto | 0–25% |
+| 🟢🟡🔴 | **HOLD** — conflicting | 0% |
+| 2+ 🔴 | **AVOID** | 0% |
+
+**Veto rule:** if any single score < 25, the verdict is capped at WATCH regardless of the others.
+
+**Macro multiplier:** Macro ≥ 70 → ×1.25 overweight, 40–69 → ×1.0, < 40 → ×0.5 underweight.
+
+Verdicts are integrated into all three workflow commands (daily one-liner, weekly compact table, monthly full verdicts).
+
+### 5. Analyze — Deep-Score Stocks
 
 Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
@@ -212,7 +254,7 @@ If no tickers are provided, you'll get an interactive prompt.
 
 Results are saved to `scores.db` (SQLite) with today's date. Re-running on the same day overwrites previous results.
 
-### 5. Track — Browse Score History
+### 6. Track — Browse Score History
 
 ```bash
 python stock.py history               # latest scores + biggest movers
@@ -228,7 +270,7 @@ Use this to spot stocks that **stand out at a specific moment** — a sudden sco
 
 Score trend charts are saved to `charts/` as PNG files.
 
-### 6. Deep Dive — Manual Due-Diligence Checklist
+### 7. Deep Dive — Manual Due-Diligence Checklist
 
 ```bash
 python stock.py deepdive AAPL         # full checklist for one stock
@@ -252,7 +294,7 @@ Every section adapts to the stock's actual numbers (e.g. warns about high debt o
 
 At the end of the deep dive, a **peer comparison table** is automatically displayed showing 5 same-sector companies side-by-side with key metrics (ROE, P/E, D/E, current ratio, FCF yield, dividend yield, profit margin, revenue growth).
 
-### 7. Alerts — Price Target & Score Drop Alerts
+### 8. Alerts — Price Target & Score Drop Alerts
 
 Scan your `scores.db` for actionable signals:
 
@@ -272,7 +314,7 @@ Thresholds are configurable in `config.yaml` (see Configuration section below).
 
 > **Tip:** Run `python stock.py analyze` first to populate scores, then `python stock.py alerts` to see what stands out.
 
-### 8. Export — Save Results to CSV or Excel
+### 9. Export — Save Results to CSV or Excel
 
 After running `analyze`, export results to a spreadsheet:
 
@@ -291,7 +333,7 @@ The Excel output includes:
 - Auto-sized column widths
 - Frozen top row for easy scrolling
 
-### 9. Config — Customize Scoring & Thresholds
+### 10. Config — Customize Scoring & Thresholds
 
 All scoring weights, DCF assumptions, and thresholds are configurable:
 
@@ -353,7 +395,7 @@ python stock.py config path     # show config file location
 
 If `config.yaml` doesn't exist, all defaults are used. Partial configs work too — only override the values you want to change.
 
-### 10. Revenue Growth — Organic Demand Tracking
+### 11. Revenue Growth — Organic Demand Tracking
 
 Revenue growth is automatically tracked alongside EPS in both `analyze` and `deepdive` commands. This helps identify whether earnings growth comes from real demand or just share buybacks / cost-cutting.
 
@@ -366,7 +408,7 @@ In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue
 
 > Revenue is informational — it is NOT part of the weighted Buffett score.
 
-### 11. Portfolio — Manage & Analyze Stocks You Own
+### 12. Portfolio — Manage & Analyze Stocks You Own
 
 Track stocks you own and get alerts specific to your holdings:
 
@@ -382,7 +424,7 @@ python stock.py portfolio export       # analyze + export to CSV
 
 > **Recommended frequency:** every 2–3 days (these are stocks you own).
 
-### 12. Watchlist — Track Stocks You're Watching
+### 13. Watchlist — Track Stocks You're Watching
 
 Watch stocks you're interested in and spot buying opportunities:
 
@@ -398,7 +440,7 @@ The watchlist command highlights **buying opportunities** — stocks that are un
 
 > **Recommended frequency:** weekly (looking for entry points).
 
-### 13. Discover — Find New Investment Ideas
+### 14. Discover — Find New Investment Ideas
 
 Scan all Finviz presets at once, deduplicate, and rank by conviction (number of presets matched):
 
@@ -412,7 +454,7 @@ Stocks already in your portfolio or watchlist are excluded. Results are ranked b
 
 > **Recommended frequency:** bi-weekly (finding new ideas).
 
-### 14. Compare — Side-by-Side Comparison
+### 15. Compare — Side-by-Side Comparison
 
 Compare any two sets of stocks:
 
@@ -440,9 +482,9 @@ python stock.py monthly     # Full review + discover (~5min)
 
 | Command | What it does | Output |
 |---------|-------------|--------|
-| `daily` | Macro one-liner + portfolio summary + entry signals + alerts | ~30 lines |
-| `weekly` | Macro compact + portfolio + watchlist + entry timing + buying opportunities + score movers | ~70 lines |
-| `monthly` | Full macro dashboard + discover + full analysis + entry timing + compare + CSV export | Verbose |
+| `daily` | Macro one-liner + portfolio summary + verdicts + alerts | ~30 lines |
+| `weekly` | Macro compact + portfolio + watchlist verdicts + buying opportunities + score movers | ~70 lines |
+| `monthly` | Full macro dashboard + discover + full analysis + verdicts + compare + CSV export | Verbose |
 
 **Tip:** Use `--summary` on any `analyze` command for compact output:
 ```bash
@@ -567,7 +609,7 @@ Weighted sum of seven sub-scores:
 | **Valuation (DCF)** | 15% | Margin of safety based on discounted cash flow |
 | **Revenue Growth** | 15% | Organic demand — confirms earnings growth is real |
 
-> **Note:** The Technical Score (0–100) and Macro Score (0–100) are **separate** scores. Technical focuses on entry timing, Macro on environment/position sizing. Neither is part of the Buffett Score — they complement each other.
+> **Note:** The Technical Score (0–100) and Macro Score (0–100) are **separate** scores. Technical focuses on entry timing, Macro on environment/position sizing. Neither is part of the Buffett Score — all three are combined by the `verdict` command.
 
 ### EPS Score (0–100)
 
@@ -673,6 +715,22 @@ provides additional context but is not scored numerically.
 - Technical Score → **WHEN** to buy (entry timing)
 - Macro Score → **HOW MUCH** to buy (position sizing)
 
+### Verdict — Triangulation
+
+The `verdict` command converges all three scores. Each score is zoned (🟢 ≥ 70, 🟡 40–69, 🔴 < 40), pairwise convergence is checked (both ≥ 60), and a verdict is produced:
+
+| Verdict | Meaning | Position |
+|---------|---------|----------|
+| **STRONG BUY** | 3 greens, 3 converge | 100–125% |
+| **BUY** | 2 greens, 1+ converge | 75–100% |
+| **ACCUMULATE** | 1 green, no reds | 50–75% |
+| **NEUTRAL** | all yellow | 25–50% |
+| **WATCH** | 2 greens + 1 red, or veto | 0–25% |
+| **HOLD** | conflicting (green + yellow + red) | 0% |
+| **AVOID** | 2+ reds | 0% |
+
+Veto rule: any score < 25 caps verdict at WATCH. Macro ≥ 70 gives ×1.25 sizing multiplier; < 40 gives ×0.5.
+
 ### Table Columns
 
 | Column | Full Name | Meaning |
@@ -724,6 +782,7 @@ commands/                      # CLI command handlers
 ├── analyze.py                 # Deep fundamental analysis + export
 ├── technical.py               # Technical entry-timing analysis
 ├── macro.py                   # Global macro environment dashboard
+├── verdict.py                 # Triangulated verdict engine
 ├── screen.py                  # Finviz candidate discovery
 ├── history.py                 # Score history browser
 ├── deepdive.py                # Due-diligence checklist + peer comparison
@@ -743,7 +802,8 @@ scoring/                       # Scoring & analysis modules
 ├── dcf.py                     # DCF intrinsic value (config-driven)
 ├── revenue.py                 # Revenue growth tracking
 ├── technical.py               # Technical analysis (RSI, SMA, BB, MACD)
-└── macro.py                   # Global macro environment (VIX, yields, indices)
+├── macro.py                   # Global macro environment (VIX, yields, indices)
+└── verdict.py                 # Triangulated verdict (convergence engine)
 
 utils/                         # Shared infrastructure
 ├── data.py                    # Ticker loading + Yahoo Finance

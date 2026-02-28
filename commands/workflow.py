@@ -66,36 +66,32 @@ def daily():
     from commands.analyze import main as analyze_main
     analyze_main()
 
-    # 2. Technical entry signals (compact)
-    _section("ENTRY SIGNALS")
-    from scoring.technical import analyze_technical, _entry_rating
+    # 2. Verdicts — triangulated one-liner per stock
+    _section("VERDICTS")
+    from scoring.technical import analyze_technical
+    from scoring.verdict import compute_verdict, verdict_one_liner
     from utils.database import get_latest_scores
     latest = {r["symbol"]: r.get("buffett_score") for r in get_latest_scores()}
 
-    signals = []
+    lines = []
     for t in tickers:
         ta = analyze_technical(t.upper())
-        if ta:
-            signals.append((ta, latest.get(t.upper())))
+        tech_score = ta.get("tech_score", 0) if ta else None
+        fund_score = latest.get(t.upper())
+        v = compute_verdict(fund_score, tech_score, macro["macro_score"])
+        lines.append((t.upper(), v))
 
-    if signals:
-        signals.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
-        print(f"  {'Symbol':<8}{'Tech':>6}{'RSI':>6}{'vs200':>8}  {'Rating'}")
-        print(f"  {'─' * 42}")
-        for ta, bs in signals:
-            tech = ta.get("tech_score", 0)
-            rsi = ta.get("rsi_14")
-            pct = ta.get("price_vs_sma200_pct")
-            rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
-            pct_s = f"{pct:+.1f}%" if pct is not None else "-"
-            stars, label = _entry_rating(tech, bs)
-            print(f"  {ta['symbol']:<8}{tech:>6}{rsi_s:>6}{pct_s:>8}  {stars} {label}")
-        # Highlight best entry
-        best = signals[0]
-        if best[0].get("tech_score", 0) >= 50:
-            print(f"\n  📉 Best entry signal: {best[0]['symbol']} (Tech {best[0]['tech_score']})")
+    if lines:
+        _ORDER = {"STRONG BUY": 0, "BUY": 1, "ACCUMULATE": 2, "NEUTRAL": 3,
+                  "WATCH": 4, "HOLD": 5, "AVOID": 6}
+        lines.sort(key=lambda x: (_ORDER.get(x[1]["verdict"], 9),
+                                   -(x[1].get("fund") or 0)))
+        print(f"  {'Symbol':<8}{'Zones':<6} {'Verdict':<14}{'Size'}")
+        print(f"  {'─' * 38}")
+        for sym, v in lines:
+            print(f"  {verdict_one_liner(v, sym)}")
     else:
-        print("  Could not fetch technical data.\n")
+        print("  Could not fetch data.\n")
 
     # 3. Alerts (filtered to portfolio only)
     _section("ALERTS")
@@ -200,42 +196,33 @@ def weekly():
         else:
             print("\n  No undervalued stocks on your watchlist right now.")
 
-        # Technical entry timing for watchlist
-        _section("WATCHLIST — ENTRY TIMING")
-        from scoring.technical import analyze_technical, _entry_rating
+        # Technical entry timing for watchlist → Verdict table
+        _section("WATCHLIST — VERDICTS")
+        from scoring.technical import analyze_technical
+        from scoring.verdict import compute_verdict, print_verdict_table
         latest_scores = {r["symbol"]: r.get("buffett_score") for r in latest}
 
-        ta_results = []
+        w_verdicts = []
         for t in w_tickers:
             ta = analyze_technical(t.upper())
-            if ta:
-                ta_results.append((ta, latest_scores.get(t.upper())))
+            tech_score = ta.get("tech_score", 0) if ta else None
+            fund_score = latest_scores.get(t.upper())
+            v = compute_verdict(fund_score, tech_score, macro["macro_score"])
+            w_verdicts.append((t.upper(), v))
 
-        if ta_results:
-            ta_results.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
-            print(f"  {'Symbol':<8}{'Tech':>6}{'Buff':>6}{'RSI':>6}{'vs200':>8}{'BB%':>6}  {'Rating'}")
-            print(f"  {'─' * 52}")
-            for ta, bs in ta_results:
-                tech = ta.get("tech_score", 0)
-                rsi = ta.get("rsi_14")
-                pct = ta.get("price_vs_sma200_pct")
-                bb = ta.get("bb_position")
-                rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
-                pct_s = f"{pct:+.1f}%" if pct is not None else "-"
-                bb_s = f"{bb:.0%}" if bb is not None else "-"
-                bs_s = f"{bs:.0f}" if bs is not None else "-"
-                stars, label = _entry_rating(tech, bs)
-                print(f"  {ta['symbol']:<8}{tech:>6}{bs_s:>6}{rsi_s:>6}{pct_s:>8}{bb_s:>6}  {stars} {label}")
+        if w_verdicts:
+            _ORDER = {"STRONG BUY": 0, "BUY": 1, "ACCUMULATE": 2, "NEUTRAL": 3,
+                      "WATCH": 4, "HOLD": 5, "AVOID": 6}
+            w_verdicts.sort(key=lambda x: (_ORDER.get(x[1]["verdict"], 9),
+                                            -(x[1].get("fund") or 0)))
+            print_verdict_table(w_verdicts, title="WATCHLIST VERDICTS")
 
-            # Highlight strong entries
-            strong = [(ta, bs) for ta, bs in ta_results
-                      if ta.get("tech_score", 0) >= 50 and (bs or 0) >= 50]
-            if strong:
-                print(f"\n  📉 Strong entry signals:")
-                for ta, bs in strong:
-                    print(f"     {ta['symbol']} — Tech {ta['tech_score']}, Buffett {bs:.0f}")
+            # Highlight actionable
+            buys = [s for s, v in w_verdicts if v["verdict"] in ("STRONG BUY", "BUY")]
+            if buys:
+                print(f"\n  📈 Actionable: {', '.join(buys)}")
         else:
-            print("  Could not fetch technical data.\n")
+            print("  Could not fetch data.\n")
     else:
         print("\n  Watchlist is empty — skipping.")
 
@@ -341,7 +328,7 @@ def monthly():
         from commands.compare import main as compare_main
         compare_main()
 
-    # 5. Entry timing for combined portfolio + watchlist
+    # 5. Triangulated verdicts for combined portfolio + watchlist
     all_tracked = []
     if has_portfolio:
         from utils.lists import portfolio_list as pl3
@@ -351,41 +338,38 @@ def monthly():
         all_tracked.extend(wl3())
 
     if all_tracked:
-        _section("ENTRY TIMING — All Tracked Stocks")
-        from scoring.technical import analyze_technical, _entry_rating
+        _section("VERDICTS — All Tracked Stocks")
+        from scoring.technical import analyze_technical
+        from scoring.verdict import compute_verdict, print_verdict_table
         from utils.database import get_latest_scores as gls2
         latest_bs = {r["symbol"]: r.get("buffett_score") for r in gls2()}
 
-        ta_all = []
+        all_verdicts = []
+        seen = set()
         for t in all_tracked:
-            ta = analyze_technical(t.upper())
-            if ta:
-                ta_all.append((ta, latest_bs.get(t.upper())))
+            sym = t.upper()
+            if sym in seen:
+                continue
+            seen.add(sym)
+            ta = analyze_technical(sym)
+            tech_score = ta.get("tech_score", 0) if ta else None
+            fund_score = latest_bs.get(sym)
+            v = compute_verdict(fund_score, tech_score, macro["macro_score"])
+            all_verdicts.append((sym, v))
 
-        if ta_all:
-            ta_all.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
-            print(f"  {'Symbol':<8}{'Tech':>6}{'Buff':>6}{'RSI':>6}{'vs200':>8}{'BB%':>6}{'52w%':>6}  {'Rating'}")
-            print(f"  {'─' * 58}")
-            for ta, bs in ta_all:
-                tech = ta.get("tech_score", 0)
-                rsi = ta.get("rsi_14")
-                pct = ta.get("price_vs_sma200_pct")
-                bb = ta.get("bb_position")
-                w52 = ta.get("week52_position")
-                rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
-                pct_s = f"{pct:+.1f}%" if pct is not None else "-"
-                bb_s = f"{bb:.0%}" if bb is not None else "-"
-                w52_s = f"{w52:.0%}" if w52 is not None else "-"
-                bs_s = f"{bs:.0f}" if bs is not None else "-"
-                stars, label = _entry_rating(tech, bs)
-                print(f"  {ta['symbol']:<8}{tech:>6}{bs_s:>6}{rsi_s:>6}{pct_s:>8}{bb_s:>6}{w52_s:>6}  {stars} {label}")
+        if all_verdicts:
+            _ORDER = {"STRONG BUY": 0, "BUY": 1, "ACCUMULATE": 2, "NEUTRAL": 3,
+                      "WATCH": 4, "HOLD": 5, "AVOID": 6}
+            all_verdicts.sort(key=lambda x: (_ORDER.get(x[1]["verdict"], 9),
+                                              -(x[1].get("fund") or 0)))
+            print_verdict_table(all_verdicts, title="ALL TRACKED STOCKS")
 
-            strong = [(ta, bs) for ta, bs in ta_all
-                      if ta.get("tech_score", 0) >= 50 and (bs or 0) >= 50]
-            if strong:
-                print(f"\n  📉 HIGHEST CONVICTION ENTRIES:")
-                for ta, bs in strong:
-                    print(f"     {ta['symbol']} — Tech {ta['tech_score']}, Buffett {bs:.0f}")
+            buys = [s for s, v in all_verdicts if v["verdict"] in ("STRONG BUY", "BUY")]
+            accum = [s for s, v in all_verdicts if v["verdict"] == "ACCUMULATE"]
+            if buys:
+                print(f"\n  📈 HIGHEST CONVICTION: {', '.join(buys)}")
+            if accum:
+                print(f"  📊 ACCUMULATE: {', '.join(accum)}")
 
     # 6. Export CSV
     if has_portfolio:

@@ -6,6 +6,7 @@ Usage:
     python stock.py analyze [TICKERS...]       Fundamental analysis (EPS, ROE, FCF, BAL, DIV, DCF)
     python stock.py technical [TICKERS...]     Technical entry-timing signals (RSI, SMA, BB, MACD)
     python stock.py macro                      Global macro environment dashboard
+    python stock.py verdict [TICKERS...]       Triangulated verdict (Fund+Tech+Macro)
     python stock.py screen [PRESET]            Discover candidates via Finviz
     python stock.py history [TICKER|--movers]  Browse score history from SQLite
     python stock.py deepdive TICKER            Manual due-diligence checklist
@@ -49,6 +50,11 @@ Commands:
                                  VIX, yields, S&P/STOXX/Nikkei/EM,
                                  commodities, USD. Macro Score 0-100.
                                  --compact for one-section summary.
+
+  verdict [tickers|--portfolio|  Triangulated verdict — convergence of
+    --watchlist|--all]           Fundamental + Technical + Macro scores.
+                                 Zone each score, check pairwise
+                                 convergence, produce verdict + sizing.
 
   screen [preset]                Discover new candidates via Finviz
                                  Presets: buffett, high_roe, fcf_machines, ...
@@ -128,6 +134,8 @@ Examples:
   python stock.py technical portfolio              # check portfolio entries
   python stock.py macro                            # global macro dashboard
   python stock.py macro --compact                  # compact macro summary
+  python stock.py verdict AAPL                     # triangulated verdict
+  python stock.py verdict --portfolio              # portfolio verdicts
   python stock.py alerts
 """)
 
@@ -239,6 +247,13 @@ def cmd_macro(args):
     main()
 
 
+def cmd_verdict(args):
+    """Triangulated verdict — Fund + Tech + Macro convergence."""
+    sys.argv = ["verdict.py"] + args
+    from commands.verdict import main
+    main()
+
+
 def cmd_daily(args):
     """Daily portfolio check."""
     from commands.workflow import daily
@@ -289,6 +304,7 @@ COMMANDS = {
     "compare": cmd_compare,
     "technical": cmd_technical,
     "macro": cmd_macro,
+    "verdict": cmd_verdict,
     "daily": cmd_daily,
     "weekly": cmd_weekly,
     "monthly": cmd_monthly,
@@ -303,6 +319,7 @@ COMMANDS["c"] = cmd_chart
 COMMANDS["p"] = cmd_portfolio
 COMMANDS["t"] = cmd_technical
 COMMANDS["m"] = cmd_macro
+COMMANDS["v"] = cmd_verdict
 COMMANDS["w"] = cmd_watchlist
 
 
