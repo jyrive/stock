@@ -396,9 +396,9 @@ python stock.py monthly     # Full review + discover (~5min)
 
 | Command | What it does | Output |
 |---------|-------------|--------|
-| `daily` | Portfolio summary (compact) + alerts | ~20 lines |
-| `weekly` | Portfolio + watchlist summaries + buying opportunities + score movers | ~50 lines |
-| `monthly` | Discover new ideas + full portfolio & watchlist analysis + compare + CSV export | Verbose |
+| `daily` | Portfolio summary (compact) + entry signals + alerts | ~30 lines |
+| `weekly` | Portfolio + watchlist summaries + entry timing + buying opportunities + score movers | ~60 lines |
+| `monthly` | Discover new ideas + full portfolio & watchlist analysis + entry timing + compare + CSV export | Verbose |
 
 **Tip:** Use `--summary` on any `analyze` command for compact output:
 ```bash

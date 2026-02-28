@@ -30,9 +30,9 @@ def _has_tickers(source):
 # ─── DAILY ──────────────────────────────────────────────────────
 
 def daily():
-    """Quick morning check: portfolio summary + alerts.
+    """Quick morning check: portfolio summary + entry signals + alerts.
 
-    Output: ~20 lines — just the summary table and any active alerts.
+    Output: ~30 lines — summary table, entry timing, and any active alerts.
     Runtime: ~30 seconds for a typical 10-stock portfolio.
     """
     start = time.time()
@@ -61,7 +61,38 @@ def daily():
     from commands.analyze import main as analyze_main
     analyze_main()
 
-    # 2. Alerts (filtered to portfolio only)
+    # 2. Technical entry signals (compact)
+    _section("ENTRY SIGNALS")
+    from scoring.technical import analyze_technical, _entry_rating
+    from utils.database import get_latest_scores
+    latest = {r["symbol"]: r.get("buffett_score") for r in get_latest_scores()}
+
+    signals = []
+    for t in tickers:
+        ta = analyze_technical(t.upper())
+        if ta:
+            signals.append((ta, latest.get(t.upper())))
+
+    if signals:
+        signals.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
+        print(f"  {'Symbol':<8}{'Tech':>6}{'RSI':>6}{'vs200':>8}  {'Rating'}")
+        print(f"  {'─' * 42}")
+        for ta, bs in signals:
+            tech = ta.get("tech_score", 0)
+            rsi = ta.get("rsi_14")
+            pct = ta.get("price_vs_sma200_pct")
+            rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
+            pct_s = f"{pct:+.1f}%" if pct is not None else "-"
+            stars, label = _entry_rating(tech, bs)
+            print(f"  {ta['symbol']:<8}{tech:>6}{rsi_s:>6}{pct_s:>8}  {stars} {label}")
+        # Highlight best entry
+        best = signals[0]
+        if best[0].get("tech_score", 0) >= 50:
+            print(f"\n  📉 Best entry signal: {best[0]['symbol']} (Tech {best[0]['tech_score']})")
+    else:
+        print("  Could not fetch technical data.\n")
+
+    # 3. Alerts (filtered to portfolio only)
     _section("ALERTS")
     from commands.alerts import scan_alerts, print_alerts
     alerts = scan_alerts()
@@ -82,9 +113,9 @@ def daily():
 # ─── WEEKLY ─────────────────────────────────────────────────────
 
 def weekly():
-    """Weekly review: portfolio + watchlist + buying opportunities + movers.
+    """Weekly review: portfolio + watchlist + entry timing + movers.
 
-    Output: ~50 lines — summary tables, buying opportunities, score movers.
+    Output: ~60 lines — summary tables, entry timing, buying opportunities, score movers.
     Runtime: ~2 minutes for 10 portfolio + 10 watchlist stocks.
     """
     start = time.time()
@@ -122,7 +153,7 @@ def weekly():
     else:
         print("\n  Portfolio is empty — skipping.")
 
-    # 2. Watchlist summary (compact) + buying opportunities
+    # 2. Watchlist summary (compact) + buying opportunities + entry timing
     if has_watchlist:
         _section("WATCHLIST — BUYING OPPORTUNITIES")
         from utils.lists import watchlist_list
@@ -157,6 +188,43 @@ def weekly():
             print(f"\n  Consider: python stock.py portfolio buy {opportunities[0]['symbol']}")
         else:
             print("\n  No undervalued stocks on your watchlist right now.")
+
+        # Technical entry timing for watchlist
+        _section("WATCHLIST — ENTRY TIMING")
+        from scoring.technical import analyze_technical, _entry_rating
+        latest_scores = {r["symbol"]: r.get("buffett_score") for r in latest}
+
+        ta_results = []
+        for t in w_tickers:
+            ta = analyze_technical(t.upper())
+            if ta:
+                ta_results.append((ta, latest_scores.get(t.upper())))
+
+        if ta_results:
+            ta_results.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
+            print(f"  {'Symbol':<8}{'Tech':>6}{'Buff':>6}{'RSI':>6}{'vs200':>8}{'BB%':>6}  {'Rating'}")
+            print(f"  {'─' * 52}")
+            for ta, bs in ta_results:
+                tech = ta.get("tech_score", 0)
+                rsi = ta.get("rsi_14")
+                pct = ta.get("price_vs_sma200_pct")
+                bb = ta.get("bb_position")
+                rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
+                pct_s = f"{pct:+.1f}%" if pct is not None else "-"
+                bb_s = f"{bb:.0%}" if bb is not None else "-"
+                bs_s = f"{bs:.0f}" if bs is not None else "-"
+                stars, label = _entry_rating(tech, bs)
+                print(f"  {ta['symbol']:<8}{tech:>6}{bs_s:>6}{rsi_s:>6}{pct_s:>8}{bb_s:>6}  {stars} {label}")
+
+            # Highlight strong entries
+            strong = [(ta, bs) for ta, bs in ta_results
+                      if ta.get("tech_score", 0) >= 50 and (bs or 0) >= 50]
+            if strong:
+                print(f"\n  📉 Strong entry signals:")
+                for ta, bs in strong:
+                    print(f"     {ta['symbol']} — Tech {ta['tech_score']}, Buffett {bs:.0f}")
+        else:
+            print("  Could not fetch technical data.\n")
     else:
         print("\n  Watchlist is empty — skipping.")
 
@@ -199,9 +267,9 @@ def weekly():
 # ─── MONTHLY ────────────────────────────────────────────────────
 
 def monthly():
-    """Monthly full review: discover + full analysis + compare + export.
+    """Monthly full review: discover + full analysis + compare + entry timing + export.
 
-    Output: verbose — full per-stock breakdowns, discovery scan, comparison.
+    Output: verbose — full per-stock breakdowns, discovery scan, entry timing, comparison.
     Runtime: ~5 minutes depending on portfolio + watchlist size.
     """
     start = time.time()
@@ -256,7 +324,53 @@ def monthly():
         from commands.compare import main as compare_main
         compare_main()
 
-    # 5. Export CSV
+    # 5. Entry timing for combined portfolio + watchlist
+    all_tracked = []
+    if has_portfolio:
+        from utils.lists import portfolio_list as pl3
+        all_tracked.extend(pl3())
+    if has_watchlist:
+        from utils.lists import watchlist_list as wl3
+        all_tracked.extend(wl3())
+
+    if all_tracked:
+        _section("ENTRY TIMING — All Tracked Stocks")
+        from scoring.technical import analyze_technical, _entry_rating
+        from utils.database import get_latest_scores as gls2
+        latest_bs = {r["symbol"]: r.get("buffett_score") for r in gls2()}
+
+        ta_all = []
+        for t in all_tracked:
+            ta = analyze_technical(t.upper())
+            if ta:
+                ta_all.append((ta, latest_bs.get(t.upper())))
+
+        if ta_all:
+            ta_all.sort(key=lambda x: x[0].get("tech_score", 0), reverse=True)
+            print(f"  {'Symbol':<8}{'Tech':>6}{'Buff':>6}{'RSI':>6}{'vs200':>8}{'BB%':>6}{'52w%':>6}  {'Rating'}")
+            print(f"  {'─' * 58}")
+            for ta, bs in ta_all:
+                tech = ta.get("tech_score", 0)
+                rsi = ta.get("rsi_14")
+                pct = ta.get("price_vs_sma200_pct")
+                bb = ta.get("bb_position")
+                w52 = ta.get("week52_position")
+                rsi_s = f"{rsi:.0f}" if rsi is not None else "-"
+                pct_s = f"{pct:+.1f}%" if pct is not None else "-"
+                bb_s = f"{bb:.0%}" if bb is not None else "-"
+                w52_s = f"{w52:.0%}" if w52 is not None else "-"
+                bs_s = f"{bs:.0f}" if bs is not None else "-"
+                stars, label = _entry_rating(tech, bs)
+                print(f"  {ta['symbol']:<8}{tech:>6}{bs_s:>6}{rsi_s:>6}{pct_s:>8}{bb_s:>6}{w52_s:>6}  {stars} {label}")
+
+            strong = [(ta, bs) for ta, bs in ta_all
+                      if ta.get("tech_score", 0) >= 50 and (bs or 0) >= 50]
+            if strong:
+                print(f"\n  📉 HIGHEST CONVICTION ENTRIES:")
+                for ta, bs in strong:
+                    print(f"     {ta['symbol']} — Tech {ta['tech_score']}, Buffett {bs:.0f}")
+
+    # 6. Export CSV
     if has_portfolio:
         _section("EXPORT — Saving CSV snapshot")
         from utils.lists import portfolio_list as pl2
