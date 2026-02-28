@@ -12,9 +12,10 @@ import sys
 import time
 import warnings
 
-from scoring.verdict import compute_verdict, print_verdict, print_verdict_table
-from scoring.technical import analyze_technical
-from scoring.macro import analyze_macro
+from verdict.engine import compute_verdict
+from output.verdict import print_verdict, print_verdict_table
+from technical.analysis import analyze_technical
+from macro.analysis import analyze_macro
 from utils.cache import enable_cache
 from utils.lists import portfolio_list, watchlist_list
 

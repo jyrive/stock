@@ -15,7 +15,7 @@ import sys
 import time
 import warnings
 
-from scoring import (
+from fundamental import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,
@@ -24,7 +24,7 @@ from scoring import (
     calculate_dcf_intrinsic_value,
     analyze_revenue_growth,
 )
-from scoring.technical import analyze_technical
+from technical.analysis import analyze_technical
 from utils.data import load_tickers, get_financial_data
 from utils.formatting import print_results, print_summary_table, flatten_result
 from utils.database import save_scores

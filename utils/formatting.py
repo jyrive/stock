@@ -335,7 +335,7 @@ def print_results(results, top_n=20):
         tech = r.get("tech_analysis", {})
         tech_score = tech.get("tech_score")
         if tech_score is not None:
-            from scoring.technical import _entry_rating
+            from output.technical import _entry_rating
             stars, label = _entry_rating(tech_score, r["buffett_score"])
             print(f"\n  📉 TECHNICAL ENTRY SIGNALS (Score: {tech_score}/100)")
             rsi = tech.get("rsi_14")

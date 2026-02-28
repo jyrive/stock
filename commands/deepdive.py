@@ -13,7 +13,7 @@ Usage:
 import sys
 import warnings
 
-from scoring import (
+from fundamental import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,

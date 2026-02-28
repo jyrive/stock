@@ -11,7 +11,8 @@ import sys
 import time
 import warnings
 
-from scoring.technical import analyze_technical, print_technical, _entry_rating
+from technical.analysis import analyze_technical
+from output.technical import print_technical, _entry_rating
 from utils.cache import enable_cache
 from utils.lists import portfolio_list, watchlist_list
 

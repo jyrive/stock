@@ -46,7 +46,8 @@ def daily():
     enable_cache()
 
     # 0. Macro one-liner
-    from scoring.macro import analyze_macro, macro_one_liner
+    from macro.analysis import analyze_macro
+    from output.macro import macro_one_liner
     macro = analyze_macro()
     print(f"\n  {macro_one_liner(macro)}")
 
@@ -68,8 +69,9 @@ def daily():
 
     # 2. Verdicts — triangulated one-liner per stock
     _section("VERDICTS")
-    from scoring.technical import analyze_technical
-    from scoring.verdict import compute_verdict, verdict_one_liner
+    from technical.analysis import analyze_technical
+    from verdict.engine import compute_verdict
+    from output.verdict import verdict_one_liner
     from utils.database import get_latest_scores
     latest = {r["symbol"]: r.get("buffett_score") for r in get_latest_scores()}
 
@@ -134,7 +136,8 @@ def weekly():
 
     # 0. Macro compact
     _section("MACRO ENVIRONMENT")
-    from scoring.macro import analyze_macro, print_macro_compact
+    from macro.analysis import analyze_macro
+    from output.macro import print_macro_compact
     macro = analyze_macro()
     print_macro_compact(macro)
 
@@ -198,8 +201,9 @@ def weekly():
 
         # Technical entry timing for watchlist → Verdict table
         _section("WATCHLIST — VERDICTS")
-        from scoring.technical import analyze_technical
-        from scoring.verdict import compute_verdict, print_verdict_table
+        from technical.analysis import analyze_technical
+        from verdict.engine import compute_verdict
+        from output.verdict import print_verdict_table
         latest_scores = {r["symbol"]: r.get("buffett_score") for r in latest}
 
         w_verdicts = []
@@ -285,7 +289,8 @@ def monthly():
 
     # 0. Full macro dashboard
     _section("GLOBAL MACRO ENVIRONMENT")
-    from scoring.macro import analyze_macro, print_macro_full
+    from macro.analysis import analyze_macro
+    from output.macro import print_macro_full
     macro = analyze_macro()
     print_macro_full(macro)
 
@@ -339,8 +344,9 @@ def monthly():
 
     if all_tracked:
         _section("VERDICTS — All Tracked Stocks")
-        from scoring.technical import analyze_technical
-        from scoring.verdict import compute_verdict, print_verdict_table
+        from technical.analysis import analyze_technical
+        from verdict.engine import compute_verdict
+        from output.verdict import print_verdict_table
         from utils.database import get_latest_scores as gls2
         latest_bs = {r["symbol"]: r.get("buffett_score") for r in gls2()}
 

@@ -793,17 +793,34 @@ commands/                      # CLI command handlers
 ├── compare.py                 # Side-by-side comparison
 └── workflow.py                # Daily/weekly/monthly workflow automation
 
-scoring/                       # Scoring & analysis modules
+fundamental/                   # Fundamental scoring (independent domain)
 ├── eps.py                     # EPS consistency & growth
 ├── roe.py                     # Return on equity & debt
 ├── fcf.py                     # Free cash flow strength
 ├── balance.py                 # Balance sheet health
 ├── dividend.py                # Dividend quality
 ├── dcf.py                     # DCF intrinsic value (config-driven)
-├── revenue.py                 # Revenue growth tracking
-├── technical.py               # Technical analysis (RSI, SMA, BB, MACD)
-├── macro.py                   # Global macro environment (VIX, yields, indices)
-└── verdict.py                 # Triangulated verdict (convergence engine)
+└── revenue.py                 # Revenue growth tracking
+
+technical/                     # Technical analysis (independent domain)
+└── analysis.py                # RSI, SMA, EMA, Bollinger, MACD, 52-week
+
+macro/                         # Global macro environment (independent domain)
+└── analysis.py                # VIX, yields, spreads, indices, breadth
+
+verdict/                       # Triangulated verdict (convergence layer)
+└── engine.py                  # Zone classification, convergence, verdicts
+
+output/                        # Presentation / print functions
+├── technical.py               # Technical analysis display
+├── macro.py                   # Macro dashboard display
+└── verdict.py                 # Verdict table & one-liner display
+
+scoring/                       # Backwards-compatibility shims
+├── eps.py, roe.py, ...        # Re-export from fundamental/*
+├── technical.py               # Re-export from technical/ + output/
+├── macro.py                   # Re-export from macro/ + output/
+└── verdict.py                 # Re-export from verdict/ + output/
 
 utils/                         # Shared infrastructure
 ├── data.py                    # Ticker loading + Yahoo Finance

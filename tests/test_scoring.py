@@ -89,7 +89,7 @@ def _make_data(
 
 class TestEPSGrowth:
     def test_consistent_growth(self):
-        from scoring.eps import analyze_eps_growth
+        from fundamental.eps import analyze_eps_growth
 
         data = _make_data()
         result = analyze_eps_growth(data)
@@ -100,7 +100,7 @@ class TestEPSGrowth:
         assert result["eps_growth_rate"] > 0
 
     def test_declining_eps(self):
-        from scoring.eps import analyze_eps_growth
+        from fundamental.eps import analyze_eps_growth
 
         # Reverse: declining net income
         data = _make_data(income_values={
@@ -112,7 +112,7 @@ class TestEPSGrowth:
         assert result["eps_consistent"] is False
 
     def test_empty_income_stmt(self):
-        from scoring.eps import analyze_eps_growth
+        from fundamental.eps import analyze_eps_growth
 
         data = _make_data()
         data["income_stmt"] = pd.DataFrame()
@@ -128,7 +128,7 @@ class TestEPSGrowth:
 
 class TestROE:
     def test_high_roe(self):
-        from scoring.roe import analyze_roe
+        from fundamental.roe import analyze_roe
 
         data = _make_data(info_overrides={"returnOnEquity": 0.25, "debtToEquity": 50})
         result = analyze_roe(data)
@@ -139,7 +139,7 @@ class TestROE:
         assert result["roe_score"] > 50
 
     def test_low_roe(self):
-        from scoring.roe import analyze_roe
+        from fundamental.roe import analyze_roe
 
         data = _make_data(info_overrides={"returnOnEquity": 0.05, "debtToEquity": 300})
         result = analyze_roe(data)
@@ -150,7 +150,7 @@ class TestROE:
         assert result["roe_score"] < 30
 
     def test_missing_roe(self):
-        from scoring.roe import analyze_roe
+        from fundamental.roe import analyze_roe
 
         data = _make_data(info_overrides={"returnOnEquity": None, "debtToEquity": None})
         # Remove equity from balance sheet to prevent historical calc
@@ -166,7 +166,7 @@ class TestROE:
 
 class TestFCF:
     def test_strong_fcf(self):
-        from scoring.fcf import analyze_free_cash_flow
+        from fundamental.fcf import analyze_free_cash_flow
 
         data = _make_data()
         result = analyze_free_cash_flow(data)
@@ -177,7 +177,7 @@ class TestFCF:
         assert result["fcf_positive_streak"] >= 1
 
     def test_no_cash_flow(self):
-        from scoring.fcf import analyze_free_cash_flow
+        from fundamental.fcf import analyze_free_cash_flow
 
         data = _make_data(info_overrides={"freeCashflow": None})
         data["cash_flow"] = pd.DataFrame()
@@ -192,7 +192,7 @@ class TestFCF:
 
 class TestBalanceSheet:
     def test_strong_balance(self):
-        from scoring.balance import analyze_balance_sheet
+        from fundamental.balance import analyze_balance_sheet
 
         data = _make_data()
         result = analyze_balance_sheet(data)
@@ -204,7 +204,7 @@ class TestBalanceSheet:
         assert result["balance_score"] > 50
 
     def test_empty_balance(self):
-        from scoring.balance import analyze_balance_sheet
+        from fundamental.balance import analyze_balance_sheet
 
         data = _make_data()
         data["balance_sheet"] = pd.DataFrame()
@@ -219,7 +219,7 @@ class TestBalanceSheet:
 
 class TestDividend:
     def test_pays_dividend(self):
-        from scoring.dividend import analyze_dividends
+        from fundamental.dividend import analyze_dividends
 
         data = _make_data(
             info_overrides={"dividendRate": 3.0, "payoutRatio": 0.35},
@@ -236,7 +236,7 @@ class TestDividend:
         assert result["dividend_score"] > 0
 
     def test_no_dividend(self):
-        from scoring.dividend import analyze_dividends
+        from fundamental.dividend import analyze_dividends
 
         data = _make_data(info_overrides={"dividendRate": 0, "payoutRatio": None})
         result = analyze_dividends(data)
@@ -253,8 +253,8 @@ class TestDividend:
 
 class TestDCF:
     def test_undervalued(self):
-        from scoring.dcf import calculate_dcf_intrinsic_value
-        from scoring.fcf import analyze_free_cash_flow
+        from fundamental.dcf import calculate_dcf_intrinsic_value
+        from fundamental.fcf import analyze_free_cash_flow
 
         # Low price → should be undervalued
         data = _make_data(current_price=50.0)
@@ -267,8 +267,8 @@ class TestDCF:
         assert result["undervalued"] is True
 
     def test_overvalued(self):
-        from scoring.dcf import calculate_dcf_intrinsic_value
-        from scoring.fcf import analyze_free_cash_flow
+        from fundamental.dcf import calculate_dcf_intrinsic_value
+        from fundamental.fcf import analyze_free_cash_flow
 
         # Very high price → should be overvalued
         data = _make_data(current_price=5000.0)
@@ -279,7 +279,7 @@ class TestDCF:
         assert result["undervalued"] is False
 
     def test_no_fcf(self):
-        from scoring.dcf import calculate_dcf_intrinsic_value
+        from fundamental.dcf import calculate_dcf_intrinsic_value
 
         data = _make_data()
         fcf = {"fcf_current": None}
@@ -295,7 +295,7 @@ class TestDCF:
 
 class TestRevenue:
     def test_growing_revenue(self):
-        from scoring.revenue import analyze_revenue_growth
+        from fundamental.revenue import analyze_revenue_growth
 
         data = _make_data()
         result = analyze_revenue_growth(data)
@@ -307,7 +307,7 @@ class TestRevenue:
         assert len(result["revenue_values"]) == 4
 
     def test_declining_revenue(self):
-        from scoring.revenue import analyze_revenue_growth
+        from fundamental.revenue import analyze_revenue_growth
 
         data = _make_data(income_values={
             "Net Income": [10e9, 9e9, 8e9, 7e9],
@@ -319,7 +319,7 @@ class TestRevenue:
         assert "revenue_cagr" in result
 
     def test_no_revenue_data(self):
-        from scoring.revenue import analyze_revenue_growth
+        from fundamental.revenue import analyze_revenue_growth
 
         data = _make_data()
         data["income_stmt"] = pd.DataFrame()

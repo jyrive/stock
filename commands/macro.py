@@ -8,7 +8,8 @@ Usage:
 import sys
 import warnings
 
-from scoring.macro import analyze_macro, print_macro_full, print_macro_compact
+from macro.analysis import analyze_macro
+from output.macro import print_macro_full, print_macro_compact
 from utils.cache import enable_cache
 
 warnings.filterwarnings("ignore")
