@@ -5,6 +5,7 @@ Unified CLI — single entry point for the Buffett Stock Screener toolkit.
 Usage:
     python stock.py analyze [TICKERS...]       Fundamental analysis (EPS, ROE, FCF, BAL, DIV, DCF)
     python stock.py technical [TICKERS...]     Technical entry-timing signals (RSI, SMA, BB, MACD)
+    python stock.py macro                      Global macro environment dashboard
     python stock.py screen [PRESET]            Discover candidates via Finviz
     python stock.py history [TICKER|--movers]  Browse score history from SQLite
     python stock.py deepdive TICKER            Manual due-diligence checklist
@@ -43,6 +44,11 @@ Commands:
     watchlist]                   RSI(14), SMA(50/200), Bollinger Bands,
                                  MACD crossover, 52-week position.
                                  Tech Score 0-100 (higher = buy signal).
+
+  macro [--compact]              Global macro environment dashboard
+                                 VIX, yields, S&P/STOXX/Nikkei/EM,
+                                 commodities, USD. Macro Score 0-100.
+                                 --compact for one-section summary.
 
   screen [preset]                Discover new candidates via Finviz
                                  Presets: buffett, high_roe, fcf_machines, ...
@@ -120,6 +126,8 @@ Examples:
   python stock.py cache stats
   python stock.py technical AAPL                  # entry timing signals
   python stock.py technical portfolio              # check portfolio entries
+  python stock.py macro                            # global macro dashboard
+  python stock.py macro --compact                  # compact macro summary
   python stock.py alerts
 """)
 
@@ -224,6 +232,13 @@ def cmd_technical(args):
     main()
 
 
+def cmd_macro(args):
+    """Global macro environment dashboard."""
+    sys.argv = ["macro.py"] + args
+    from commands.macro import main
+    main()
+
+
 def cmd_daily(args):
     """Daily portfolio check."""
     from commands.workflow import daily
@@ -273,6 +288,7 @@ COMMANDS = {
     "discover": cmd_discover,
     "compare": cmd_compare,
     "technical": cmd_technical,
+    "macro": cmd_macro,
     "daily": cmd_daily,
     "weekly": cmd_weekly,
     "monthly": cmd_monthly,
@@ -286,6 +302,7 @@ COMMANDS["d"] = cmd_deepdive
 COMMANDS["c"] = cmd_chart
 COMMANDS["p"] = cmd_portfolio
 COMMANDS["t"] = cmd_technical
+COMMANDS["m"] = cmd_macro
 COMMANDS["w"] = cmd_watchlist
 
 

@@ -45,6 +45,11 @@ def daily():
     from utils.cache import enable_cache
     enable_cache()
 
+    # 0. Macro one-liner
+    from scoring.macro import analyze_macro, macro_one_liner
+    macro = analyze_macro()
+    print(f"\n  {macro_one_liner(macro)}")
+
     if not _has_tickers("portfolio"):
         print("\n  Portfolio is empty. Add stocks first:")
         print("    python stock.py portfolio add AAPL MSFT GOOGL")
@@ -130,6 +135,12 @@ def weekly():
 
     has_portfolio = _has_tickers("portfolio")
     has_watchlist = _has_tickers("watchlist")
+
+    # 0. Macro compact
+    _section("MACRO ENVIRONMENT")
+    from scoring.macro import analyze_macro, print_macro_compact
+    macro = analyze_macro()
+    print_macro_compact(macro)
 
     # 1. Portfolio summary (compact)
     if has_portfolio:
@@ -284,6 +295,12 @@ def monthly():
 
     has_portfolio = _has_tickers("portfolio")
     has_watchlist = _has_tickers("watchlist")
+
+    # 0. Full macro dashboard
+    _section("GLOBAL MACRO ENVIRONMENT")
+    from scoring.macro import analyze_macro, print_macro_full
+    macro = analyze_macro()
+    print_macro_full(macro)
 
     # 1. Discover new candidates
     _section("DISCOVER — New Investment Ideas")

@@ -5,6 +5,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Screen** — scan Finviz for candidates matching Buffett-style filters
 - **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, dividends, and DCF intrinsic value
 - **Technical** — entry-timing signals using RSI, SMA, Bollinger Bands, MACD, and 52-week range
+- **Macro** — global macro environment dashboard (VIX, yields, S&P/STOXX/Nikkei/EM, commodities, USD)
 - **Track** — store scores in SQLite and spot changes over time
 - **Chart** — plot score trends from history as PNG charts
 - **Deep Dive** — get a tailored manual due-diligence checklist for any stock
@@ -19,6 +20,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Config** — customize scoring weights, DCF assumptions, and thresholds via YAML
 - **Cache** — transparent API response caching for faster re-runs
 - **Technical** — spot buying opportunities with RSI, moving averages, Bollinger Bands, MACD, and 52-week position
+- **Macro** — global macro environment score (0–100) for position sizing context
 - **Tests** — 47 pytest tests covering scoring, config, database, export, alerts, and list management
 
 ---
@@ -72,6 +74,7 @@ All commands are available through `stock.py`:
 ```bash
 python stock.py analyze AAPL MSFT    # deep fundamental analysis
 python stock.py technical AAPL       # entry-timing signals (RSI, SMA, BB, MACD)
+python stock.py macro                # global macro environment dashboard
 python stock.py screen high_roe      # discover candidates via Finviz
 python stock.py history --movers     # browse score history
 python stock.py deepdive AAPL        # due-diligence checklist
@@ -87,7 +90,7 @@ python stock.py discover             # scan all presets for new ideas
 python stock.py compare portfolio watchlist  # side-by-side comparison
 ```
 
-Single-letter aliases work too: `a` (analyze), `t` (technical), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
+Single-letter aliases work too: `a` (analyze), `t` (technical), `m` (macro), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
 
 If you pass tickers without a command, it defaults to `analyze`:
 
@@ -150,7 +153,48 @@ The **Entry Rating** combines Tech Score + Buffett Score:
 
 Technical data is also included in the `analyze` summary table (Tech, RSI, v200 columns) and saved to `scores.db`.
 
-### 3. Analyze — Deep-Score Stocks
+### 3. Macro — Global Environment Dashboard
+
+Assess the macro-economic environment to calibrate your position sizing. The **Macro Score** (0–100) tells you *how much* to buy:
+
+```bash
+python stock.py macro              # full dashboard with all indicators
+python stock.py macro --compact    # compact summary (~10 lines)
+```
+
+Indicators tracked:
+
+| Category | Indicator | What It Tells You |
+|----------|----------|-------------------|
+| **US Market** | S&P 500 vs 200-MA | Market trend direction |
+| **Europe** | STOXX 600 vs 200-MA | European market health |
+| **Asia** | Nikkei 225 vs 200-MA | Asian market health |
+| **Emerging** | MSCI EM ETF vs 200-MA | Emerging market health |
+| **Volatility** | VIX (Fear Index) | High VIX = fear = opportunity |
+| **Rates** | 10Y & 2Y Treasury, 2-10 spread | Rate environment, recession signal |
+| **Currency** | USD Index, EUR/USD | Dollar strength |
+| **Commodities** | Gold, Oil (WTI), Copper | Inflation, demand, risk-off gauge |
+
+**Three-layer decision model:**
+
+| Layer | Score | Question |
+|-------|-------|----------|
+| Buffett Score | 0–100 | **WHAT** to buy (fundamental quality) |
+| Technical Score | 0–100 | **WHEN** to buy (stock-level entry) |
+| Macro Score | 0–100 | **HOW MUCH** to buy (position sizing) |
+
+Macro score interpretation:
+
+| Score | Stance | Position Sizing |
+|-------|--------|----------------|
+| ≥ 70 | Aggressive | Full positions on quality stocks |
+| 50–69 | Constructive | Normal position sizes |
+| 35–49 | Cautious | Half positions, average in gradually |
+| < 35 | Defensive | Minimal new positions, build cash |
+
+Macro analysis is automatically included in all workflow commands (daily one-liner, weekly compact, monthly full dashboard).
+
+### 4. Analyze — Deep-Score Stocks
 
 Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
@@ -168,7 +212,7 @@ If no tickers are provided, you'll get an interactive prompt.
 
 Results are saved to `scores.db` (SQLite) with today's date. Re-running on the same day overwrites previous results.
 
-### 4. Track — Browse Score History
+### 5. Track — Browse Score History
 
 ```bash
 python stock.py history               # latest scores + biggest movers
@@ -184,7 +228,7 @@ Use this to spot stocks that **stand out at a specific moment** — a sudden sco
 
 Score trend charts are saved to `charts/` as PNG files.
 
-### 5. Deep Dive — Manual Due-Diligence Checklist
+### 6. Deep Dive — Manual Due-Diligence Checklist
 
 ```bash
 python stock.py deepdive AAPL         # full checklist for one stock
@@ -208,7 +252,7 @@ Every section adapts to the stock's actual numbers (e.g. warns about high debt o
 
 At the end of the deep dive, a **peer comparison table** is automatically displayed showing 5 same-sector companies side-by-side with key metrics (ROE, P/E, D/E, current ratio, FCF yield, dividend yield, profit margin, revenue growth).
 
-### 6. Alerts — Price Target & Score Drop Alerts
+### 7. Alerts — Price Target & Score Drop Alerts
 
 Scan your `scores.db` for actionable signals:
 
@@ -228,7 +272,7 @@ Thresholds are configurable in `config.yaml` (see Configuration section below).
 
 > **Tip:** Run `python stock.py analyze` first to populate scores, then `python stock.py alerts` to see what stands out.
 
-### 7. Export — Save Results to CSV or Excel
+### 8. Export — Save Results to CSV or Excel
 
 After running `analyze`, export results to a spreadsheet:
 
@@ -247,7 +291,7 @@ The Excel output includes:
 - Auto-sized column widths
 - Frozen top row for easy scrolling
 
-### 8. Config — Customize Scoring & Thresholds
+### 9. Config — Customize Scoring & Thresholds
 
 All scoring weights, DCF assumptions, and thresholds are configurable:
 
@@ -309,7 +353,7 @@ python stock.py config path     # show config file location
 
 If `config.yaml` doesn't exist, all defaults are used. Partial configs work too — only override the values you want to change.
 
-### 9. Revenue Growth — Organic Demand Tracking
+### 10. Revenue Growth — Organic Demand Tracking
 
 Revenue growth is automatically tracked alongside EPS in both `analyze` and `deepdive` commands. This helps identify whether earnings growth comes from real demand or just share buybacks / cost-cutting.
 
@@ -322,7 +366,7 @@ In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue
 
 > Revenue is informational — it is NOT part of the weighted Buffett score.
 
-### 10. Portfolio — Manage & Analyze Stocks You Own
+### 11. Portfolio — Manage & Analyze Stocks You Own
 
 Track stocks you own and get alerts specific to your holdings:
 
@@ -338,7 +382,7 @@ python stock.py portfolio export       # analyze + export to CSV
 
 > **Recommended frequency:** every 2–3 days (these are stocks you own).
 
-### 11. Watchlist — Track Stocks You're Watching
+### 12. Watchlist — Track Stocks You're Watching
 
 Watch stocks you're interested in and spot buying opportunities:
 
@@ -354,7 +398,7 @@ The watchlist command highlights **buying opportunities** — stocks that are un
 
 > **Recommended frequency:** weekly (looking for entry points).
 
-### 12. Discover — Find New Investment Ideas
+### 13. Discover — Find New Investment Ideas
 
 Scan all Finviz presets at once, deduplicate, and rank by conviction (number of presets matched):
 
@@ -368,7 +412,7 @@ Stocks already in your portfolio or watchlist are excluded. Results are ranked b
 
 > **Recommended frequency:** bi-weekly (finding new ideas).
 
-### 13. Compare — Side-by-Side Comparison
+### 14. Compare — Side-by-Side Comparison
 
 Compare any two sets of stocks:
 
@@ -396,9 +440,9 @@ python stock.py monthly     # Full review + discover (~5min)
 
 | Command | What it does | Output |
 |---------|-------------|--------|
-| `daily` | Portfolio summary (compact) + entry signals + alerts | ~30 lines |
-| `weekly` | Portfolio + watchlist summaries + entry timing + buying opportunities + score movers | ~60 lines |
-| `monthly` | Discover new ideas + full portfolio & watchlist analysis + entry timing + compare + CSV export | Verbose |
+| `daily` | Macro one-liner + portfolio summary + entry signals + alerts | ~30 lines |
+| `weekly` | Macro compact + portfolio + watchlist + entry timing + buying opportunities + score movers | ~70 lines |
+| `monthly` | Full macro dashboard + discover + full analysis + entry timing + compare + CSV export | Verbose |
 
 **Tip:** Use `--summary` on any `analyze` command for compact output:
 ```bash
@@ -523,7 +567,7 @@ Weighted sum of seven sub-scores:
 | **Valuation (DCF)** | 15% | Margin of safety based on discounted cash flow |
 | **Revenue Growth** | 15% | Organic demand — confirms earnings growth is real |
 
-> **Note:** The Technical Score (0–100) is a **separate** score focused on entry timing. It is NOT part of the Buffett Score — they complement each other.
+> **Note:** The Technical Score (0–100) and Macro Score (0–100) are **separate** scores. Technical focuses on entry timing, Macro on environment/position sizing. Neither is part of the Buffett Score — they complement each other.
 
 ### EPS Score (0–100)
 
@@ -607,9 +651,27 @@ A separate score focused on *when* to buy. Higher = better entry opportunity.
 | **52-week position** | 15 pts | Near low (< 20%) = 15, mid-range = 8, near high = 0 |
 | **MACD** | 15 pts | Bullish crossover = 15, positive histogram = 10 |
 
-The Technical Score is independent from the Buffett Score. Together they form the **Entry Rating**:
-- Buffett Score → WHAT to buy (fundamental quality)
-- Technical Score → WHEN to buy (entry timing)
+The Technical Score is independent from the Buffett Score.
+
+### Macro Score (0–100) — Environment Favourability
+
+A global macro-economic environment score for position sizing. Higher = more favourable.
+
+| Component | Weight | Bullish Signal |
+|-----------|--------|----------------|
+| **VIX** | 25 pts | High VIX (> 25) = fear = opportunity |
+| **S&P 500 vs 200-MA** | 25 pts | Below MA = cheaper market |
+| **Yield Spread (10Y − 2Y)** | 20 pts | Normal/steep curve = healthy economy |
+| **S&P 52-week position** | 15 pts | Near 52-week lows = opportunity |
+| **10-Year Yield** | 15 pts | Lower rates = more equity-friendly |
+
+Global breadth (how many of US / Europe / Asia / EM trade above their 200-MA)
+provides additional context but is not scored numerically.
+
+**Three-layer model:**
+- Buffett Score → **WHAT** to buy (fundamental quality)
+- Technical Score → **WHEN** to buy (entry timing)
+- Macro Score → **HOW MUCH** to buy (position sizing)
 
 ### Table Columns
 
@@ -661,6 +723,7 @@ watchlist.txt                  # Stocks you're WATCHING (auto-created)
 commands/                      # CLI command handlers
 ├── analyze.py                 # Deep fundamental analysis + export
 ├── technical.py               # Technical entry-timing analysis
+├── macro.py                   # Global macro environment dashboard
 ├── screen.py                  # Finviz candidate discovery
 ├── history.py                 # Score history browser
 ├── deepdive.py                # Due-diligence checklist + peer comparison
@@ -668,7 +731,8 @@ commands/                      # CLI command handlers
 ├── portfolio.py               # Portfolio management & analysis
 ├── watchlist.py               # Watchlist management & opportunities
 ├── discover.py                # Multi-preset discovery scanner
-└── compare.py                 # Side-by-side comparison
+├── compare.py                 # Side-by-side comparison
+└── workflow.py                # Daily/weekly/monthly workflow automation
 
 scoring/                       # Scoring & analysis modules
 ├── eps.py                     # EPS consistency & growth
@@ -678,7 +742,8 @@ scoring/                       # Scoring & analysis modules
 ├── dividend.py                # Dividend quality
 ├── dcf.py                     # DCF intrinsic value (config-driven)
 ├── revenue.py                 # Revenue growth tracking
-└── technical.py               # Technical analysis (RSI, SMA, BB, MACD)
+├── technical.py               # Technical analysis (RSI, SMA, BB, MACD)
+└── macro.py                   # Global macro environment (VIX, yields, indices)
 
 utils/                         # Shared infrastructure
 ├── data.py                    # Ticker loading + Yahoo Finance
