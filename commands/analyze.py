@@ -22,13 +22,29 @@ from scoring import (
     analyze_balance_sheet,
     analyze_dividends,
     calculate_dcf_intrinsic_value,
+    analyze_revenue_growth,
 )
 from utils.data import load_tickers, get_financial_data
 from utils.formatting import print_results
 from utils.database import save_scores
 from utils.cache import enable_cache
+from utils.config import get_weights
 
 warnings.filterwarnings("ignore")
+
+
+def _compute_score(eps, roe, fcf, bal, div, dcf):
+    """Compute weighted Buffett score from sub-scores."""
+    w = get_weights()
+    return round(
+        eps["eps_score"] * w["eps"]
+        + roe["roe_score"] * w["roe"]
+        + fcf["fcf_score"] * w["fcf"]
+        + bal["balance_score"] * w["balance"]
+        + div["dividend_score"] * w["dividend"]
+        + (25 if dcf["undervalued"] else 0) * w["dcf"],
+        1,
+    )
 
 
 def screen_stock(ticker_symbol, index, total):
@@ -45,15 +61,9 @@ def screen_stock(ticker_symbol, index, total):
     bal = analyze_balance_sheet(data)
     div = analyze_dividends(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
+    rev = analyze_revenue_growth(data)
 
-    total_score = (
-        eps["eps_score"] * 0.15
-        + roe["roe_score"] * 0.15
-        + fcf["fcf_score"] * 0.20
-        + bal["balance_score"] * 0.15
-        + div["dividend_score"] * 0.15
-        + (25 if dcf["undervalued"] else 0) * 0.20
-    )
+    total_score = _compute_score(eps, roe, fcf, bal, div, dcf)
 
     return {
         "symbol": data["symbol"],
@@ -69,17 +79,30 @@ def screen_stock(ticker_symbol, index, total):
         "balance_analysis": bal,
         "dividend_analysis": div,
         "dcf_analysis": dcf,
-        "buffett_score": round(total_score, 1),
+        "revenue_analysis": rev,
+        "buffett_score": total_score,
     }
 
 
 def main():
-    if len(sys.argv) > 1:
-        arg = sys.argv[1]
+    # Parse flags
+    export_csv = False
+    export_xlsx = False
+    remaining_args = []
+    for arg in sys.argv[1:]:
+        if arg == "--csv":
+            export_csv = True
+        elif arg in ("--xlsx", "--excel"):
+            export_xlsx = True
+        else:
+            remaining_args.append(arg)
+
+    if remaining_args:
+        arg = remaining_args[0]
         if arg.endswith(".txt") or arg.endswith(".csv"):
             candidates = load_tickers(arg)
         else:
-            candidates = [t.upper().strip() for t in sys.argv[1:] if t.strip()]
+            candidates = [t.upper().strip() for t in remaining_args if t.strip()]
     else:
         candidates = load_tickers()
 
@@ -122,6 +145,14 @@ def main():
         and r["fcf_analysis"]["fcf_score"] >= 50
     )
     print(f"Companies passing all key criteria: {passing}")
+
+    # Export if requested
+    if export_csv:
+        from utils.export import export_csv as _export_csv
+        _export_csv(results)
+    if export_xlsx:
+        from utils.export import export_excel
+        export_excel(results)
 
 
 if __name__ == "__main__":

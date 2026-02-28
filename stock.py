@@ -47,6 +47,15 @@ Commands:
 
   cache [clear|stats]            Manage yfinance API response cache
 
+  config [show|init|path]        Manage configuration
+                                 show = display current settings
+                                 init = create config.yaml with defaults
+                                 path = show config file location
+
+  alerts                         Price target alerts
+                                 Shows undervalued stocks, bargains,
+                                 and significant score drops.
+
 Examples:
   python stock.py analyze AAPL MSFT GOOGL
   python stock.py analyze                      # uses tickers.txt
@@ -56,6 +65,7 @@ Examples:
   python stock.py deepdive V
   python stock.py chart AAPL MSFT
   python stock.py cache stats
+  python stock.py alerts
 """)
 
 
@@ -117,6 +127,30 @@ def cmd_cache(args):
         print("Usage: python stock.py cache [clear|stats]")
 
 
+def cmd_alerts(args):
+    """Run price target alerts."""
+    sys.argv = ["alerts.py"] + args
+    from commands.alerts import main
+    main()
+
+
+def cmd_config(args):
+    """Manage configuration."""
+    from utils.config import save_default_config, load_config, CONFIG_PATH
+
+    if not args or args[0] == "show":
+        cfg = load_config()
+        import json
+        print(json.dumps(cfg, indent=2))
+    elif args[0] == "init":
+        save_default_config()
+    elif args[0] == "path":
+        print(CONFIG_PATH)
+    else:
+        print(f"Unknown config command: {args[0]}")
+        print("Usage: python stock.py config [show|init|path]")
+
+
 COMMANDS = {
     "analyze": cmd_analyze,
     "screen": cmd_screen,
@@ -124,6 +158,8 @@ COMMANDS = {
     "deepdive": cmd_deepdive,
     "chart": cmd_chart,
     "cache": cmd_cache,
+    "config": cmd_config,
+    "alerts": cmd_alerts,
 }
 
 # Aliases

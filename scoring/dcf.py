@@ -1,5 +1,7 @@
 """DCF valuation: calculate intrinsic value and margin of safety."""
 
+from utils.config import get_dcf_params
+
 
 def calculate_dcf_intrinsic_value(data, fcf_analysis):
     """Calculate intrinsic value using a conservative DCF model."""
@@ -35,11 +37,13 @@ def calculate_dcf_intrinsic_value(data, fcf_analysis):
 
         fcf_per_share = fcf_total / shares
 
-        # DCF assumptions (conservative Buffett-style)
-        growth_rate_high = 0.08  # 8% for years 1-5
-        growth_rate_low = 0.03  # 3% for years 6-10
-        terminal_growth = 0.025  # 2.5% terminal growth
-        discount_rate = 0.10  # 10% required return
+        # DCF assumptions from config
+        params = get_dcf_params()
+        growth_rate_high = params["growth_rate_high"]
+        growth_rate_low = params["growth_rate_low"]
+        terminal_growth = params["terminal_growth"]
+        discount_rate = params["discount_rate"]
+        margin_required = params.get("margin_required", 0.15)
 
         # Project FCF
         projected_fcf = []
@@ -75,7 +79,7 @@ def calculate_dcf_intrinsic_value(data, fcf_analysis):
         result["upside_pct"] = round(
             ((intrinsic_value / current_price) - 1) * 100, 2
         )
-        result["undervalued"] = intrinsic_value > current_price * 1.15
+        result["undervalued"] = intrinsic_value > current_price * (1 + margin_required)
     except Exception:
         pass
 

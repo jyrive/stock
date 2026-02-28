@@ -158,6 +158,8 @@ def flatten_result(r):
         "intrinsic_value": r["dcf_analysis"].get("intrinsic_value"),
         "margin_of_safety": r["dcf_analysis"].get("margin_of_safety"),
         "undervalued": r["dcf_analysis"].get("undervalued"),
+        "revenue_cagr": r.get("revenue_analysis", {}).get("revenue_cagr"),
+        "revenue_growing": r.get("revenue_analysis", {}).get("revenue_growing"),
     }
 
 
@@ -214,6 +216,19 @@ def print_results(results, top_n=20):
             f"     CAGR: {eps['eps_growth_rate']}% | "
             f"Consistent: {'✅' if eps['eps_consistent'] else '❌'}"
         )
+
+        # Revenue
+        rev = r.get("revenue_analysis", {})
+        if rev.get("revenue_values"):
+            print(f"\n  📊 REVENUE GROWTH")
+            rev_str = " → ".join([f"{y}: ${v}B" for y, v in rev["revenue_values"]])
+            print(f"     Revenue: {rev_str}")
+            rev_cagr = rev.get("revenue_cagr")
+            print(
+                f"     CAGR: {rev_cagr}% | "
+                f"Consistent: {'✅' if rev.get('revenue_consistent') else '❌'} | "
+                f"Growing: {'✅' if rev.get('revenue_growing') else '❌'}"
+            )
 
         # ROE
         roe = r["roe_analysis"]

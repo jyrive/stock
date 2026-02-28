@@ -20,10 +20,12 @@ from scoring import (
     analyze_balance_sheet,
     analyze_dividends,
     calculate_dcf_intrinsic_value,
+    analyze_revenue_growth,
 )
 from utils.data import get_financial_data
 from utils.database import save_scores
 from utils.cache import enable_cache
+from utils.config import get_weights
 
 warnings.filterwarnings("ignore")
 
@@ -50,14 +52,17 @@ def _run_analysis(ticker):
     bal = analyze_balance_sheet(data)
     div = analyze_dividends(data)
     dcf = calculate_dcf_intrinsic_value(data, fcf)
+    rev = analyze_revenue_growth(data)
 
-    total_score = (
-        eps["eps_score"] * 0.15
-        + roe["roe_score"] * 0.15
-        + fcf["fcf_score"] * 0.20
-        + bal["balance_score"] * 0.15
-        + div["dividend_score"] * 0.15
-        + (25 if dcf["undervalued"] else 0) * 0.20
+    w = get_weights()
+    total_score = round(
+        eps["eps_score"] * w["eps"]
+        + roe["roe_score"] * w["roe"]
+        + fcf["fcf_score"] * w["fcf"]
+        + bal["balance_score"] * w["balance"]
+        + div["dividend_score"] * w["dividend"]
+        + (25 if dcf["undervalued"] else 0) * w["dcf"],
+        1,
     )
 
     return {
@@ -74,7 +79,9 @@ def _run_analysis(ticker):
         "balance_analysis": bal,
         "dividend_analysis": div,
         "dcf_analysis": dcf,
+        "revenue_analysis": rev,
         "buffett_score": round(total_score, 1),
+        "_raw_data": data,  # Keep raw data for peer comparison
     }
 
 
@@ -189,6 +196,31 @@ def print_deep_dive(r):
     _todo(f"Read the latest 10-K filing (SEC.gov {ARROW} search '{sym}')")
     _todo(f"Check: is revenue also growing, or just EPS from buybacks?")
     _todo(f"Look for non-recurring items that inflate/deflate earnings")
+
+    # Revenue growth context
+    rev = r.get("revenue_analysis", {})
+    rev_values = rev.get("revenue_values", [])
+    rev_cagr = rev.get("revenue_cagr")
+    rev_growing = rev.get("revenue_growing")
+
+    if rev_values:
+        print()
+        rev_str = ", ".join([f"{y}: ${v}B" for y, v in rev_values])
+        print(f"  Revenue history: {rev_str}")
+        if rev_cagr is not None:
+            print(f"  Revenue CAGR: {rev_cagr:.1f}%")
+        if rev_growing:
+            _check(OK, "Revenue is growing — organic demand confirmed")
+        else:
+            _check(WARN, "Revenue is NOT growing — EPS growth may be from buybacks/cost-cuts")
+            _todo("Investigate: is top-line stagnation a concern?")
+
+        # Compare revenue and EPS CAGR
+        if rev_cagr is not None and eps_cagr is not None and eps_cagr > 0:
+            if rev_cagr > 0 and eps_cagr > rev_cagr * 2:
+                _check(WARN, f"EPS growing {eps_cagr:.0f}% vs revenue {rev_cagr:.0f}% — check for buyback-driven EPS")
+            elif rev_cagr > eps_cagr:
+                _check(WARN, f"Revenue ({rev_cagr:.0f}%) outpacing EPS ({eps_cagr:.0f}%) — margin pressure?")
 
     # ── 4. Balance Sheet Strength ────────────────────────────────
     _section("4. BALANCE SHEET STRENGTH")
@@ -504,6 +536,17 @@ def main():
     result = _run_analysis(ticker)
 
     print_deep_dive(result)
+
+    # Peer comparison
+    raw_data = result.pop("_raw_data", None)
+    if raw_data:
+        from utils.peers import find_peers, fetch_peer_metrics, print_peer_comparison
+        peer_symbols = find_peers(ticker, result["sector"], result.get("industry"))
+        if peer_symbols:
+            print(f"  Fetching {len(peer_symbols)} sector peers for comparison...")
+            peers = fetch_peer_metrics(peer_symbols)
+            if peers:
+                print_peer_comparison(ticker, raw_data, peers)
 
     # Save to DB too
     saved = save_scores([result])
