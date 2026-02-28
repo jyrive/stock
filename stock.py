@@ -84,10 +84,13 @@ Commands:
                                  and significant score drops.
 
   ── Portfolio / Watchlist ──────────────────────────────
-  portfolio                      Analyze stocks you OWN + alerts
+  portfolio                      Analyze stocks you OWN + alerts + P&L
   portfolio list|add|remove      Manage portfolio tickers
-  portfolio buy TICKER           Move from watchlist → portfolio
-  portfolio sell TICKER          Move to watchlist (keep watching)
+  portfolio buy AAPL --shares 10 Paper buy (auto-fetches price)
+  portfolio sell AAPL --shares 5 Paper sell
+  portfolio pnl                  P&L + total return vs SPY
+  portfolio positions            Show open positions
+  portfolio transactions         Transaction history
 
   watchlist                      Analyze & rank stocks you WATCH
   watchlist list|add|remove      Manage watchlist tickers

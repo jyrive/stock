@@ -160,6 +160,12 @@ def weekly():
             alerts[key] = [a for a in alerts[key] if a["symbol"] in p_set]
         if any(alerts[k] for k in ("undervalued", "score_drops", "bargains")):
             print_alerts(alerts)
+
+        # P&L if positions are tracked
+        from utils.positions import has_positions
+        if has_positions():
+            from commands.portfolio import print_pnl
+            print_pnl(compact=True)
     else:
         print("\n  Portfolio is empty — skipping.")
 
