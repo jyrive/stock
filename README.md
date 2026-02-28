@@ -4,6 +4,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 
 - **Screen** — scan Finviz for candidates matching Buffett-style filters
 - **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, dividends, and DCF intrinsic value
+- **Technical** — entry-timing signals using RSI, SMA, Bollinger Bands, MACD, and 52-week range
 - **Track** — store scores in SQLite and spot changes over time
 - **Chart** — plot score trends from history as PNG charts
 - **Deep Dive** — get a tailored manual due-diligence checklist for any stock
@@ -17,6 +18,7 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Compare** — side-by-side comparison of any two stock lists
 - **Config** — customize scoring weights, DCF assumptions, and thresholds via YAML
 - **Cache** — transparent API response caching for faster re-runs
+- **Technical** — spot buying opportunities with RSI, moving averages, Bollinger Bands, MACD, and 52-week position
 - **Tests** — 47 pytest tests covering scoring, config, database, export, alerts, and list management
 
 ---
@@ -69,6 +71,7 @@ All commands are available through `stock.py`:
 
 ```bash
 python stock.py analyze AAPL MSFT    # deep fundamental analysis
+python stock.py technical AAPL       # entry-timing signals (RSI, SMA, BB, MACD)
 python stock.py screen high_roe      # discover candidates via Finviz
 python stock.py history --movers     # browse score history
 python stock.py deepdive AAPL        # due-diligence checklist
@@ -84,7 +87,7 @@ python stock.py discover             # scan all presets for new ideas
 python stock.py compare portfolio watchlist  # side-by-side comparison
 ```
 
-Single-letter aliases work too: `a` (analyze), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
+Single-letter aliases work too: `a` (analyze), `t` (technical), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
 
 If you pass tickers without a command, it defaults to `analyze`:
 
@@ -114,7 +117,40 @@ python stock.py screen --list        # show available presets
 
 Output includes a ready-to-paste command to analyze the new candidates.
 
-### 2. Analyze — Deep-Score Stocks
+### 2. Technical — Entry Timing Signals
+
+Spot buying opportunities with technical indicators. The **Tech Score** (0–100) tells you *when* to buy — pair it with the Buffett Score to know *what* to buy:
+
+```bash
+python stock.py technical AAPL          # single stock — detailed breakdown
+python stock.py technical AAPL MSFT V   # multiple stocks — summary table
+python stock.py technical portfolio     # all portfolio stocks
+python stock.py technical watchlist     # all watchlist stocks
+```
+
+Indicators analyzed:
+
+| Indicator | What It Measures | Bullish When |
+|-----------|-----------------|---------------|
+| **RSI(14)** | Momentum — overbought/oversold | < 30 (oversold) |
+| **SMA(50/200)** | Trend direction | Price below moving averages |
+| **Bollinger Bands** | Volatility & mean reversion | Near lower band |
+| **MACD(12,26,9)** | Trend momentum & crossovers | Bullish crossover |
+| **52-week position** | Price range context | Near 52-week low |
+
+The **Entry Rating** combines Tech Score + Buffett Score:
+
+| Rating | Meaning |
+|--------|--------|
+| ★★★★★ HIGHEST CONVICTION | High Buffett + high Tech — strong buy signal |
+| ★★★★☆ GOOD ENTRY | Good fundamentals + favorable technical setup |
+| ★★★☆☆ FAIR | Mixed signals — proceed with caution |
+| ★★☆☆☆ NEUTRAL | No strong entry signal |
+| ★☆☆☆☆ WAIT | Technically unfavorable — wait for better entry |
+
+Technical data is also included in the `analyze` summary table (Tech, RSI, v200 columns) and saved to `scores.db`.
+
+### 3. Analyze — Deep-Score Stocks
 
 Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
@@ -132,7 +168,7 @@ If no tickers are provided, you'll get an interactive prompt.
 
 Results are saved to `scores.db` (SQLite) with today's date. Re-running on the same day overwrites previous results.
 
-### 3. Track — Browse Score History
+### 4. Track — Browse Score History
 
 ```bash
 python stock.py history               # latest scores + biggest movers
@@ -148,7 +184,7 @@ Use this to spot stocks that **stand out at a specific moment** — a sudden sco
 
 Score trend charts are saved to `charts/` as PNG files.
 
-### 4. Deep Dive — Manual Due-Diligence Checklist
+### 5. Deep Dive — Manual Due-Diligence Checklist
 
 ```bash
 python stock.py deepdive AAPL         # full checklist for one stock
@@ -172,7 +208,7 @@ Every section adapts to the stock's actual numbers (e.g. warns about high debt o
 
 At the end of the deep dive, a **peer comparison table** is automatically displayed showing 5 same-sector companies side-by-side with key metrics (ROE, P/E, D/E, current ratio, FCF yield, dividend yield, profit margin, revenue growth).
 
-### 5. Alerts — Price Target & Score Drop Alerts
+### 6. Alerts — Price Target & Score Drop Alerts
 
 Scan your `scores.db` for actionable signals:
 
@@ -192,7 +228,7 @@ Thresholds are configurable in `config.yaml` (see Configuration section below).
 
 > **Tip:** Run `python stock.py analyze` first to populate scores, then `python stock.py alerts` to see what stands out.
 
-### 6. Export — Save Results to CSV or Excel
+### 7. Export — Save Results to CSV or Excel
 
 After running `analyze`, export results to a spreadsheet:
 
@@ -202,7 +238,7 @@ python stock.py analyze AAPL MSFT --xlsx      # saves scores_YYYY-MM-DD.xlsx (st
 python stock.py analyze AAPL MSFT --excel     # same as --xlsx
 ```
 
-The export includes 32 columns covering all sub-scores, key metrics, revenue CAGR, DCF valuation, and more.
+The export includes 35 columns covering all sub-scores, key metrics, revenue CAGR, DCF valuation, technical indicators, and more.
 
 **CSV** works out of the box. **Excel** requires `openpyxl` (`pip install openpyxl`). If `openpyxl` is not installed, it falls back to CSV automatically.
 
@@ -211,7 +247,7 @@ The Excel output includes:
 - Auto-sized column widths
 - Frozen top row for easy scrolling
 
-### 7. Config — Customize Scoring & Thresholds
+### 8. Config — Customize Scoring & Thresholds
 
 All scoring weights, DCF assumptions, and thresholds are configurable:
 
@@ -273,7 +309,7 @@ python stock.py config path     # show config file location
 
 If `config.yaml` doesn't exist, all defaults are used. Partial configs work too — only override the values you want to change.
 
-### 8. Revenue Growth — Organic Demand Tracking
+### 9. Revenue Growth — Organic Demand Tracking
 
 Revenue growth is automatically tracked alongside EPS in both `analyze` and `deepdive` commands. This helps identify whether earnings growth comes from real demand or just share buybacks / cost-cutting.
 
@@ -286,7 +322,7 @@ In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue
 
 > Revenue is informational — it is NOT part of the weighted Buffett score.
 
-### 9. Portfolio — Manage & Analyze Stocks You Own
+### 10. Portfolio — Manage & Analyze Stocks You Own
 
 Track stocks you own and get alerts specific to your holdings:
 
@@ -302,7 +338,7 @@ python stock.py portfolio export       # analyze + export to CSV
 
 > **Recommended frequency:** every 2–3 days (these are stocks you own).
 
-### 10. Watchlist — Track Stocks You're Watching
+### 11. Watchlist — Track Stocks You're Watching
 
 Watch stocks you're interested in and spot buying opportunities:
 
@@ -318,7 +354,7 @@ The watchlist command highlights **buying opportunities** — stocks that are un
 
 > **Recommended frequency:** weekly (looking for entry points).
 
-### 11. Discover — Find New Investment Ideas
+### 12. Discover — Find New Investment Ideas
 
 Scan all Finviz presets at once, deduplicate, and rank by conviction (number of presets matched):
 
@@ -332,7 +368,7 @@ Stocks already in your portfolio or watchlist are excluded. Results are ranked b
 
 > **Recommended frequency:** bi-weekly (finding new ideas).
 
-### 12. Compare — Side-by-Side Comparison
+### 13. Compare — Side-by-Side Comparison
 
 Compare any two sets of stocks:
 
@@ -378,16 +414,18 @@ For more control, run the individual steps:
  │  1. python stock.py discover              │ ← find new candidates
  │  2. python stock.py watchlist add ACN LULU │ ← add interesting ones
  │  3. python stock.py watchlist              │ ← analyze & rank them
- │  4. python stock.py deepdive LULU          │ ← manual due diligence
- │  5. python stock.py portfolio buy LULU     │ ← move to portfolio
- │  6. python stock.py portfolio              │ ← monitor your holdings
- │  7. python stock.py compare portfolio watchlist │ ← compare lists
- │  8. python stock.py history --movers       │ ← spot changes over time
- │  9. python stock.py alerts                 │ ← check price signals
- │ 10. python stock.py portfolio export       │ ← export for sharing
+ │  4. python stock.py technical watchlist    │ ← check entry timing
+ │  5. python stock.py deepdive LULU          │ ← manual due diligence
+ │  6. python stock.py portfolio buy LULU     │ ← move to portfolio
+ │  7. python stock.py portfolio              │ ← monitor your holdings
+ │  8. python stock.py technical portfolio    │ ← check entry signals
+ │  9. python stock.py compare portfolio watchlist │ ← compare lists
+ │ 10. python stock.py history --movers       │ ← spot changes over time
+ │ 11. python stock.py alerts                 │ ← check price signals
+ │ 12. python stock.py portfolio export       │ ← export for sharing
  └──────────────────────────────────────────────────────┘
 
-  Flow:  discover → watchlist → research → buy → portfolio
+  Flow:  discover → watchlist → technical → research → buy → portfolio
 ```
 
 ---
@@ -485,6 +523,8 @@ Weighted sum of seven sub-scores:
 | **Valuation (DCF)** | 15% | Margin of safety based on discounted cash flow |
 | **Revenue Growth** | 15% | Organic demand — confirms earnings growth is real |
 
+> **Note:** The Technical Score (0–100) is a **separate** score focused on entry timing. It is NOT part of the Buffett Score — they complement each other.
+
 ### EPS Score (0–100)
 
 | Component | How It's Calculated | Points |
@@ -555,6 +595,22 @@ Revenue growth is now part of the weighted Buffett Score, rewarding companies wi
 | CAGR Magnitude | 2.5 pts per 1% revenue CAGR (capped) | Up to 40 |
 | Overall Growth | Latest revenue > earliest | 20 |
 
+### Technical Score (0–100) — Entry Timing
+
+A separate score focused on *when* to buy. Higher = better entry opportunity.
+
+| Component | Weight | Bullish Signal |
+|-----------|--------|----------------|
+| **RSI(14)** | 25 pts | < 30 oversold = 25, < 35 = 20, < 40 = 15, 40–60 neutral = 10 |
+| **Price vs 200-MA** | 25 pts | Below MA = 25, near MA = 15, far above = 0 |
+| **Bollinger Band %** | 20 pts | Near lower band (< 20%) = 20, mid-range = 10 |
+| **52-week position** | 15 pts | Near low (< 20%) = 15, mid-range = 8, near high = 0 |
+| **MACD** | 15 pts | Bullish crossover = 15, positive histogram = 10 |
+
+The Technical Score is independent from the Buffett Score. Together they form the **Entry Rating**:
+- Buffett Score → WHAT to buy (fundamental quality)
+- Technical Score → WHEN to buy (entry timing)
+
 ### Table Columns
 
 | Column | Full Name | Meaning |
@@ -585,6 +641,9 @@ Revenue growth is now part of the weighted Buffett Score, rewarding companies wi
 | **UV** | Undervalued | ✅ if IV > Price × 1.15, otherwise ❌ |
 | **Price** | Current Price | Market price at time of scan (Yahoo Finance) |
 | **P/E** | Price-to-Earnings | Share price ÷ trailing EPS |
+| **Tech** | Technical Score | Entry timing score 0–100 (higher = better entry) |
+| **RSI** | RSI(14) | 14-day Relative Strength Index. <30 oversold, >70 overbought |
+| **v200** | Price vs 200-MA | % distance from 200-day moving average. Negative = below MA |
 
 ---
 
@@ -601,6 +660,7 @@ watchlist.txt                  # Stocks you're WATCHING (auto-created)
 
 commands/                      # CLI command handlers
 ├── analyze.py                 # Deep fundamental analysis + export
+├── technical.py               # Technical entry-timing analysis
 ├── screen.py                  # Finviz candidate discovery
 ├── history.py                 # Score history browser
 ├── deepdive.py                # Due-diligence checklist + peer comparison
@@ -610,14 +670,15 @@ commands/                      # CLI command handlers
 ├── discover.py                # Multi-preset discovery scanner
 └── compare.py                 # Side-by-side comparison
 
-scoring/                       # Fundamental analysis modules
+scoring/                       # Scoring & analysis modules
 ├── eps.py                     # EPS consistency & growth
 ├── roe.py                     # Return on equity & debt
 ├── fcf.py                     # Free cash flow strength
 ├── balance.py                 # Balance sheet health
 ├── dividend.py                # Dividend quality
 ├── dcf.py                     # DCF intrinsic value (config-driven)
-└── revenue.py                 # Revenue growth tracking
+├── revenue.py                 # Revenue growth tracking
+└── technical.py               # Technical analysis (RSI, SMA, BB, MACD)
 
 utils/                         # Shared infrastructure
 ├── data.py                    # Ticker loading + Yahoo Finance
