@@ -11,9 +11,13 @@ A Python toolkit for finding and analyzing stocks using Warren Buffett's investm
 - **Revenue Growth** — track organic demand vs. buyback-driven EPS
 - **Price Alerts** — flag undervalued stocks, bargains, and significant score drops
 - **Export** — save results to CSV or styled Excel spreadsheets
+- **Portfolio** — manage and analyze stocks you OWN with alerts and movers
+- **Watchlist** — track stocks you're WATCHING and spot buying opportunities
+- **Discover** — scan all Finviz presets at once, ranked by conviction
+- **Compare** — side-by-side comparison of any two stock lists
 - **Config** — customize scoring weights, DCF assumptions, and thresholds via YAML
 - **Cache** — transparent API response caching for faster re-runs
-- **Tests** — 35 pytest tests covering scoring, config, database, export, and alerts
+- **Tests** — 47 pytest tests covering scoring, config, database, export, alerts, and list management
 
 ---
 
@@ -74,9 +78,13 @@ python stock.py cache clear          # clear cached API responses
 python stock.py config show          # show current config
 python stock.py config init          # create config.yaml with defaults
 python stock.py alerts               # price target & score drop alerts
+python stock.py portfolio            # analyze stocks you OWN
+python stock.py watchlist            # analyze stocks you're WATCHING
+python stock.py discover             # scan all presets for new ideas
+python stock.py compare portfolio watchlist  # side-by-side comparison
 ```
 
-Single-letter aliases work too: `a` (analyze), `s` (screen), `h` (history), `d` (deepdive), `c` (chart).
+Single-letter aliases work too: `a` (analyze), `s` (screen), `h` (history), `d` (deepdive), `c` (chart), `p` (portfolio), `w` (watchlist).
 
 If you pass tickers without a command, it defaults to `analyze`:
 
@@ -277,26 +285,99 @@ In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue
 
 > Revenue is informational — it is NOT part of the weighted Buffett score.
 
+### 9. Portfolio — Manage & Analyze Stocks You Own
+
+Track stocks you own and get alerts specific to your holdings:
+
+```bash
+python stock.py portfolio              # analyze all portfolio stocks + alerts
+python stock.py portfolio list         # show current portfolio tickers
+python stock.py portfolio add AAPL V   # add tickers to portfolio
+python stock.py portfolio remove MSFT  # remove a ticker
+python stock.py portfolio buy AAPL     # move from watchlist → portfolio
+python stock.py portfolio sell MSFT    # move from portfolio → watchlist
+python stock.py portfolio export       # analyze + export to CSV
+```
+
+> **Recommended frequency:** every 2–3 days (these are stocks you own).
+
+### 10. Watchlist — Track Stocks You're Watching
+
+Watch stocks you're interested in and spot buying opportunities:
+
+```bash
+python stock.py watchlist              # analyze watchlist + show buying opportunities
+python stock.py watchlist list         # show current watchlist
+python stock.py watchlist add MSFT V   # add tickers to watchlist
+python stock.py watchlist remove META  # remove a ticker
+python stock.py watchlist export       # analyze + export to CSV
+```
+
+The watchlist command highlights **buying opportunities** — stocks that are undervalued according to DCF.
+
+> **Recommended frequency:** weekly (looking for entry points).
+
+### 11. Discover — Find New Investment Ideas
+
+Scan all Finviz presets at once, deduplicate, and rank by conviction (number of presets matched):
+
+```bash
+python stock.py discover               # scan all 5 presets
+python stock.py discover --analyze     # also auto-analyze top 10 candidates
+python stock.py discover buffett       # scan only one preset
+```
+
+Stocks already in your portfolio or watchlist are excluded. Results are ranked by "conviction" — a stock matching 4 presets is a stronger signal than one matching 1.
+
+> **Recommended frequency:** bi-weekly (finding new ideas).
+
+### 12. Compare — Side-by-Side Comparison
+
+Compare any two sets of stocks:
+
+```bash
+python stock.py compare portfolio watchlist       # portfolio vs watchlist
+python stock.py compare AAPL,MSFT GOOGL,META      # two ticker groups
+python stock.py compare portfolio other_picks.txt  # vs an external file
+python stock.py compare AAPL,MSFT                  # compare against portfolio
+```
+
+Shows average scores, P/E, undervalued count, rankings side-by-side, and overlap analysis.
+
+> **Recommended frequency:** on demand.
+
 ### Typical Workflow
 
 ```
- ┌─────────────────────────────────────────────────┐
- │  1. python stock.py screen high_roe             │ ← find new candidates
- │  2. Copy the suggested command from output      │
- │  3. python stock.py analyze ACN LULU MNST       │ ← deep-score them
- │  4. Add winners to tickers.txt                  │ ← track going forward
- │  5. python stock.py analyze                     │ ← re-rank full list
- │  6. python stock.py history --movers            │ ← spot changes over time
- │  7. python stock.py chart LULU                  │ ← visualize score trend
- │  8. python stock.py deepdive LULU               │ ← manual due diligence
- │  9. python stock.py alerts                      │ ← check price signals
- │ 10. python stock.py analyze --csv               │ ← export for sharing
- └─────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────┐
+ │  1. python stock.py discover              │ ← find new candidates
+ │  2. python stock.py watchlist add ACN LULU │ ← add interesting ones
+ │  3. python stock.py watchlist              │ ← analyze & rank them
+ │  4. python stock.py deepdive LULU          │ ← manual due diligence
+ │  5. python stock.py portfolio buy LULU     │ ← move to portfolio
+ │  6. python stock.py portfolio              │ ← monitor your holdings
+ │  7. python stock.py compare portfolio watchlist │ ← compare lists
+ │  8. python stock.py history --movers       │ ← spot changes over time
+ │  9. python stock.py alerts                 │ ← check price signals
+ │ 10. python stock.py portfolio export       │ ← export for sharing
+ └──────────────────────────────────────────────────────┘
+
+  Flow:  discover → watchlist → research → buy → portfolio
 ```
 
 ---
 
 ## Ticker Management
+
+The tool uses three ticker files, all in the project root:
+
+| File | Purpose | Managed by |
+|------|---------|------------|
+| `tickers.txt` | Master list for `analyze` (default) | Edit manually |
+| `portfolio.txt` | Stocks you **OWN** | `portfolio add/remove/buy/sell` |
+| `watchlist.txt` | Stocks you're **WATCHING** | `watchlist add/remove` |
+
+`portfolio.txt` and `watchlist.txt` are auto-created on first use. The `buy` command moves a stock from watchlist → portfolio; `sell` moves it the other way (keeps watching).
 
 Edit `tickers.txt` — one ticker per line. Use `#` for comments and blank lines to organize by sector:
 
@@ -483,12 +564,19 @@ tickers.txt                    # Your tracked ticker list
 config.yaml                    # User config (created with `config init`)
 scores.db                      # SQLite database (auto-created)
 
+portfolio.txt                  # Stocks you OWN (auto-created)
+watchlist.txt                  # Stocks you're WATCHING (auto-created)
+
 commands/                      # CLI command handlers
 ├── analyze.py                 # Deep fundamental analysis + export
 ├── screen.py                  # Finviz candidate discovery
 ├── history.py                 # Score history browser
 ├── deepdive.py                # Due-diligence checklist + peer comparison
-└── alerts.py                  # Price target & score drop alerts
+├── alerts.py                  # Price target & score drop alerts
+├── portfolio.py               # Portfolio management & analysis
+├── watchlist.py               # Watchlist management & opportunities
+├── discover.py                # Multi-preset discovery scanner
+└── compare.py                 # Side-by-side comparison
 
 scoring/                       # Fundamental analysis modules
 ├── eps.py                     # EPS consistency & growth
@@ -509,14 +597,16 @@ utils/                         # Shared infrastructure
 ├── chart.py                   # Score trend chart generation (PNG)
 ├── config.py                  # YAML config loader with defaults
 ├── export.py                  # CSV / Excel export
-└── peers.py                   # Same-sector peer comparison
+├── peers.py                   # Same-sector peer comparison
+└── lists.py                   # Portfolio/watchlist file management
 
 tests/                         # Unit tests (pytest)
 ├── test_scoring.py            # All 7 scoring modules
 ├── test_config.py             # Config loading, merging, weights
 ├── test_database.py           # Save, retrieve, migration
 ├── test_export.py             # CSV/Excel output
-└── test_alerts.py             # Alert scanning logic
+├── test_alerts.py             # Alert scanning logic
+└── test_lists.py              # Portfolio/watchlist CRUD + cross-list moves
 ```
 
 ## Requirements
@@ -545,7 +635,7 @@ pip install yfinance pandas numpy finvizfinance requests-cache matplotlib pyyaml
 python -m pytest tests/ -v
 ```
 
-35 tests cover all scoring modules, config loading, database operations, export, and alerts — all using mock data (no network calls).
+47 tests cover all scoring modules, config loading, database operations, export, alerts, and list management — all using mock data (no network calls).
 
 ## Disclaimer
 

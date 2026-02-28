@@ -10,6 +10,11 @@ Usage:
     python stock.py chart TICKER [TICKER...]   Generate score trend chart
     python stock.py cache [clear|stats]        Manage API cache
 
+    python stock.py portfolio [sub]            Manage & analyze stocks you OWN
+    python stock.py watchlist [sub]            Manage & analyze stocks you WATCH
+    python stock.py discover [--analyze]       Find new investment ideas (Finviz)
+    python stock.py compare <A> <B>            Side-by-side comparison
+
     python stock.py                            Show this help
 """
 
@@ -55,6 +60,28 @@ Commands:
   alerts                         Price target alerts
                                  Shows undervalued stocks, bargains,
                                  and significant score drops.
+
+  ── Portfolio / Watchlist ──────────────────────────────
+  portfolio                      Analyze stocks you OWN + alerts
+  portfolio list|add|remove      Manage portfolio tickers
+  portfolio buy TICKER           Move from watchlist → portfolio
+  portfolio sell TICKER          Move to watchlist (keep watching)
+
+  watchlist                      Analyze & rank stocks you WATCH
+  watchlist list|add|remove      Manage watchlist tickers
+
+  discover                       Scan all Finviz presets, find new ideas
+  discover --analyze             Also auto-analyze top candidates
+
+  compare portfolio watchlist    Side-by-side comparison
+  compare AAPL,MSFT GOOGL,META  Compare two ticker groups
+  compare portfolio other.txt   Compare vs external file
+
+  ── Recommended Frequency ─────────────────────────────
+  portfolio    → every 2–3 days (your money)
+  watchlist    → weekly          (entry points)
+  discover     → bi-weekly       (new ideas)
+  compare      → on demand
 
 Examples:
   python stock.py analyze AAPL MSFT GOOGL
@@ -134,6 +161,34 @@ def cmd_alerts(args):
     main()
 
 
+def cmd_portfolio(args):
+    """Manage and analyze portfolio."""
+    sys.argv = ["portfolio.py"] + args
+    from commands.portfolio import main
+    main()
+
+
+def cmd_watchlist(args):
+    """Manage and analyze watchlist."""
+    sys.argv = ["watchlist.py"] + args
+    from commands.watchlist import main
+    main()
+
+
+def cmd_discover(args):
+    """Find new investment ideas via Finviz."""
+    sys.argv = ["discover.py"] + args
+    from commands.discover import main
+    main()
+
+
+def cmd_compare(args):
+    """Side-by-side comparison."""
+    sys.argv = ["compare.py"] + args
+    from commands.compare import main
+    main()
+
+
 def cmd_config(args):
     """Manage configuration."""
     from utils.config import save_default_config, load_config, CONFIG_PATH
@@ -160,6 +215,10 @@ COMMANDS = {
     "cache": cmd_cache,
     "config": cmd_config,
     "alerts": cmd_alerts,
+    "portfolio": cmd_portfolio,
+    "watchlist": cmd_watchlist,
+    "discover": cmd_discover,
+    "compare": cmd_compare,
 }
 
 # Aliases
@@ -168,6 +227,8 @@ COMMANDS["s"] = cmd_screen
 COMMANDS["h"] = cmd_history
 COMMANDS["d"] = cmd_deepdive
 COMMANDS["c"] = cmd_chart
+COMMANDS["p"] = cmd_portfolio
+COMMANDS["w"] = cmd_watchlist
 
 
 def main():
