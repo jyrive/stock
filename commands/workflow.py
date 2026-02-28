@@ -230,7 +230,33 @@ def weekly():
     else:
         print("\n  Watchlist is empty — skipping.")
 
-    # 3. Score movers (all tracked stocks)
+    # 3. Discover new candidates (not in portfolio/watchlist)
+    _section("DISCOVER — New Arrivals")
+    from commands.discover import _collect_all_candidates
+    from utils.discovery import PRESETS
+    all_results, excluded = _collect_all_candidates()
+    new_candidates = {t: info for t, info in all_results.items() if t not in excluded}
+    ranked = sorted(new_candidates.values(), key=lambda x: len(x["presets"]), reverse=True)
+
+    if ranked:
+        print(f"  🆕 {len(ranked)} NEW stocks found (not in portfolio/watchlist):\n")
+        print(f"  {'#':>3}  {'Ticker':<8}{'Company':<30}{'Conviction':<12}{'P/E':>6}{'Price':>10}")
+        print(f"  {'─' * 72}")
+        for i, info in enumerate(ranked[:20], 1):
+            conv = len(info["presets"])
+            stars = "★" * conv + "☆" * (len(PRESETS) - conv)
+            pe = str(info.get("pe", "-"))[:6]
+            price = f"${info.get('price', '-')}"
+            print(f"  {i:>3}  {info['ticker']:<8}{info['company'][:29]:<30}{stars:<12}{pe:>6}{price:>10}")
+
+        if len(ranked) > 20:
+            print(f"\n  ... and {len(ranked) - 20} more.")
+        top5 = [r["ticker"] for r in ranked[:5]]
+        print(f"\n  Add to watchlist:  python stock.py watchlist add {' '.join(top5)}")
+    else:
+        print("  ✅ No new candidates — your watchlist covers all Finviz matches.")
+
+    # 4. Score movers (all tracked stocks)
     _section("SCORE MOVERS")
     from utils.database import get_biggest_movers
     from commands.history import print_movers
