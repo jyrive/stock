@@ -73,7 +73,7 @@ def daily():
     from verdict.engine import compute_verdict
     from output.verdict import verdict_one_liner
     from utils.database import get_latest_scores
-    latest = {r["symbol"]: r.get("buffett_score") for r in get_latest_scores()}
+    latest = {r["symbol"]: r.get("fundamental_score") for r in get_latest_scores()}
 
     lines = []
     for t in tickers:
@@ -188,7 +188,7 @@ def weekly():
         for row in latest:
             if row["symbol"] in w_set:
                 mos = row.get("margin_of_safety")
-                score = row.get("buffett_score")
+                score = row.get("fundamental_score")
                 if mos is not None and mos > 0 and score is not None:
                     opportunities.append(row)
 
@@ -200,7 +200,7 @@ def weekly():
             for o in opportunities:
                 price = f"${o['current_price']:.2f}" if o.get("current_price") else "-"
                 iv = f"${o['intrinsic_value']:.2f}" if o.get("intrinsic_value") else "-"
-                print(f"  {o['symbol']:<8}{o['buffett_score']:>7.0f}{o['margin_of_safety']:>7.1f}%{price:>10}{iv:>10}")
+                print(f"  {o['symbol']:<8}{o['fundamental_score']:>7.0f}{o['margin_of_safety']:>7.1f}%{price:>10}{iv:>10}")
             print(f"\n  Consider: python stock.py portfolio buy {opportunities[0]['symbol']}")
         else:
             print("\n  No undervalued stocks on your watchlist right now.")
@@ -210,7 +210,7 @@ def weekly():
         from technical.analysis import analyze_technical
         from verdict.engine import compute_verdict
         from output.verdict import print_verdict_table
-        latest_scores = {r["symbol"]: r.get("buffett_score") for r in latest}
+        latest_scores = {r["symbol"]: r.get("fundamental_score") for r in latest}
 
         w_verdicts = []
         for t in w_tickers:
@@ -380,7 +380,7 @@ def monthly():
         from verdict.engine import compute_verdict
         from output.verdict import print_verdict_table
         from utils.database import get_latest_scores as gls2
-        latest_bs = {r["symbol"]: r.get("buffett_score") for r in gls2()}
+        latest_bs = {r["symbol"]: r.get("fundamental_score") for r in gls2()}
 
         all_verdicts = []
         seen = set()

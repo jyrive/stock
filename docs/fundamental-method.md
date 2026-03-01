@@ -1,8 +1,8 @@
-# Buffett's Method vs. This Tool
+# Fundamental Method vs. This Tool
 
-Warren Buffett's investment process has both quantitative (numbers) and qualitative (judgment) parts. This tool automates the quantitative side and flags where you still need to do your own thinking.
+The fundamental investment process has both quantitative (numbers) and qualitative (judgment) parts. This tool automates the quantitative side and flags where you still need to do your own thinking.
 
-| # | Buffett's Step | This Tool | Status |
+| # | Fundamental Step | This Tool | Status |
 |---|---------------|-----------|--------|
 | 1 | **Understand the business** — only invest in what you understand | Shows sector/industry labels. `deepdive.py` asks you to explain the business in one sentence. | ⚠️ Guided |
 | 2 | **Durable competitive advantage (moat)** — brand, patents, switching costs, network effects | Sustained high ROE as quantitative proxy. `deepdive.py` walks you through identifying the moat source. | ⚠️ Guided |
@@ -10,7 +10,7 @@ Warren Buffett's investment process has both quantitative (numbers) and qualitat
 | 4 | **High return on equity** — ROE >15% sustained over time | Current ROE level + historical consistency bonus + D/E penalty. | ✅ Covered |
 | 5 | **Conservative debt** — can pay off debt from a few years of earnings | D/E ratio check (<150 = reasonable). Cash/Debt ratio scored in balance sheet module. | ✅ Covered |
 | 6 | **Strong free cash flow** — business converts earnings into real cash | FCF streak, growth trend, and FCF yield scored. | ✅ Covered |
-| 7 | **Owner earnings** — net income + depreciation − capex − working capital changes | FCF (operating cash flow − capex) is a close approximation. Does not compute Buffett's exact owner earnings formula. | ⚠️ Approx |
+| 7 | **Owner earnings** — net income + depreciation − capex − working capital changes | FCF (operating cash flow − capex) is a close approximation. Does not compute the exact owner earnings formula. | ⚠️ Approx |
 | 8 | **Intrinsic value & margin of safety** — buy only at a significant discount to fair value | 10-year DCF model with terminal value. Flags undervalued when IV > Price × 1.15. | ✅ Covered |
 | 9 | **Management quality** — honest, shareholder-oriented, good capital allocators | `deepdive.py` provides a management checklist (CEO tenure, insider ownership, capital allocation, compensation). Research links included. | ⚠️ Guided |
 | 10 | **Reasonable price** — don't overpay even for a great business | P/E displayed. FCF yield calculated. Finviz preset filters P/E < 25. | ✅ Covered |

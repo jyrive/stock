@@ -24,7 +24,7 @@ def _flat_row(r):
         "Market Cap ($B)": r.get("market_cap_b"),
         "Price": r.get("current_price"),
         "P/E": r.get("trailing_pe"),
-        "Buffett Score": r.get("buffett_score"),
+        "Fundamental Score": r.get("fundamental_score"),
         "EPS Score": eps.get("eps_score"),
         "EPS CAGR (%)": eps.get("eps_growth_rate"),
         "EPS Consistent": "Yes" if eps.get("eps_consistent") else "No",
@@ -108,7 +108,7 @@ def export_excel(results, filepath=None):
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = f"Buffett Scores {date.today().isoformat()}"
+    ws.title = f"Fundamental Scores {date.today().isoformat()}"
 
     # Header row
     header_font = Font(bold=True, color="FFFFFF")

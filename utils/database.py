@@ -56,7 +56,7 @@ def _connect(db_path=None):
             tech_score    INTEGER,
             rsi_14        REAL,
             price_vs_sma200_pct REAL,
-            buffett_score REAL,
+            fundamental_score REAL,
             PRIMARY KEY (symbol, scan_date)
         )
     """)
@@ -90,6 +90,10 @@ def _connect(db_path=None):
     ]:
         if col not in existing_cols:
             conn.execute(f"ALTER TABLE scores ADD COLUMN {col} {ctype}")
+
+    # Migrate: rename buffett_score → fundamental_score (for existing DBs)
+    if "buffett_score" in existing_cols and "fundamental_score" not in existing_cols:
+        conn.execute("ALTER TABLE scores RENAME COLUMN buffett_score TO fundamental_score")
 
     conn.commit()
     return conn
@@ -152,7 +156,7 @@ def save_scores(results, db_path=None):
             tech.get("tech_score"),
             tech.get("rsi_14"),
             tech.get("price_vs_sma200_pct"),
-            r.get("buffett_score"),
+            r.get("fundamental_score"),
         ))
 
     conn.executemany("""
@@ -169,7 +173,7 @@ def save_scores(results, db_path=None):
             intrinsic_value, margin_of_safety, undervalued,
             revenue_cagr, revenue_growing, revenue_score,
             tech_score, rsi_14, price_vs_sma200_pct,
-            buffett_score
+            fundamental_score
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows)
     conn.commit()
@@ -189,10 +193,10 @@ def get_scan_dates(db_path=None):
 
 
 def get_scores_by_date(scan_date, db_path=None):
-    """Return all scores for a given date, ranked by buffett_score."""
+    """Return all scores for a given date, ranked by fundamental_score."""
     conn = _connect(db_path)
     rows = conn.execute(
-        "SELECT * FROM scores WHERE scan_date = ? ORDER BY buffett_score DESC",
+        "SELECT * FROM scores WHERE scan_date = ? ORDER BY fundamental_score DESC",
         (scan_date,),
     ).fetchall()
     conn.close()
@@ -219,7 +223,7 @@ def get_latest_scores(db_path=None):
             SELECT symbol, MAX(scan_date) AS max_date
             FROM scores GROUP BY symbol
         ) latest ON s.symbol = latest.symbol AND s.scan_date = latest.max_date
-        ORDER BY s.buffett_score DESC
+        ORDER BY s.fundamental_score DESC
     """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -235,7 +239,7 @@ def get_biggest_movers(days=30, min_scans=2, db_path=None):
 
     # Get latest score per ticker
     latest = conn.execute("""
-        SELECT s.symbol, s.buffett_score, s.scan_date, s.name, s.sector
+        SELECT s.symbol, s.fundamental_score, s.scan_date, s.name, s.sector
         FROM scores s
         INNER JOIN (
             SELECT symbol, MAX(scan_date) AS max_date
@@ -248,19 +252,19 @@ def get_biggest_movers(days=30, min_scans=2, db_path=None):
         symbol = row["symbol"]
         # Find the oldest score within the window
         older = conn.execute("""
-            SELECT buffett_score, scan_date FROM scores
+            SELECT fundamental_score, scan_date FROM scores
             WHERE symbol = ? AND scan_date < ?
             ORDER BY scan_date ASC LIMIT 1
         """, (symbol, row["scan_date"])).fetchone()
 
         if older:
-            change = row["buffett_score"] - older["buffett_score"]
+            change = row["fundamental_score"] - older["fundamental_score"]
             movers.append({
                 "symbol": symbol,
                 "name": row["name"],
                 "sector": row["sector"],
-                "old_score": older["buffett_score"],
-                "new_score": row["buffett_score"],
+                "old_score": older["fundamental_score"],
+                "new_score": row["fundamental_score"],
                 "change": round(change, 1),
                 "old_date": older["scan_date"],
                 "new_date": row["scan_date"],

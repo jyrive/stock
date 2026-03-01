@@ -1,4 +1,4 @@
-# Buffett Screener - Ticker List
+# Stock Screener - Ticker List
 # One ticker per line. Lines starting with # are comments.
 # Blank lines are ignored.
 

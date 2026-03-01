@@ -1,6 +1,6 @@
 """Discover new stock candidates from online screeners (Finviz).
 
-Scans Finviz for stocks matching Buffett-style filters and reports
+Scans Finviz for stocks matching quality filters and reports
 candidates not already in the local ticker list.
 """
 
@@ -11,10 +11,10 @@ from finvizfinance.screener.overview import Overview
 from .data import load_tickers, DEFAULT_TICKER_FILE
 
 
-# Predefined Buffett-style filter presets
+# Predefined quality filter presets
 PRESETS = {
-    "buffett": {
-        "description": "Classic Buffett: high ROE, profitable, large-cap, low debt",
+    "quality": {
+        "description": "Classic quality: high ROE, profitable, large-cap, low debt",
         "filters": {
             "Market Cap.": "Large ($10bln to $200bln)",
             "Return on Equity": "Over +15%",
@@ -23,8 +23,8 @@ PRESETS = {
             "Operating Margin": "Over 15%",
         },
     },
-    "buffett_mega": {
-        "description": "Buffett mega-caps: >$200B, high ROE, strong margins",
+    "quality_mega": {
+        "description": "Quality mega-caps: >$200B, high ROE, strong margins",
         "filters": {
             "Market Cap.": "Mega ($200bln and more)",
             "Return on Equity": "Over +15%",
@@ -74,7 +74,7 @@ def get_existing_tickers(ticker_file=None):
         return set()
 
 
-def scan_finviz(preset_name="buffett", custom_filters=None):
+def scan_finviz(preset_name="quality", custom_filters=None):
     """Query Finviz screener and return a list of ticker dicts.
 
     Returns list of dicts with keys: Ticker, Company, Sector, Industry,
@@ -100,7 +100,7 @@ def scan_finviz(preset_name="buffett", custom_filters=None):
     return df.to_dict("records")
 
 
-def discover_candidates(preset_name="buffett", ticker_file=None, show_all=False):
+def discover_candidates(preset_name="quality", ticker_file=None, show_all=False):
     """Discover new candidates not already in the ticker list.
 
     Returns (new_candidates, existing_matches, all_results).

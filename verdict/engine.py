@@ -1,12 +1,12 @@
 """Triangulation verdict — converge Fundamental, Technical, and Macro scores.
 
-Inspired by Pietari Laurila's triangulation approach: three independent
+Three independent
 lenses must *converge* before acting.  We do NOT average;  we classify
 each score into a zone, check pairwise convergence, and produce a single
 verdict with a position-sizing recommendation.
 
 Three-layer model:
-    Buffett  Score → WHAT  to buy  (fundamental quality)
+    Fundamental  Score → WHAT  to buy  (fundamental quality)
     Technical Score → WHEN  to buy  (entry timing)
     Macro    Score → HOW MUCH      (position sizing)
 
@@ -130,7 +130,7 @@ def compute_verdict(fund, tech, macro):
 
     Parameters
     ----------
-    fund  : float | None   Buffett Score 0–100
+    fund  : float | None   Fundamental Score 0–100
     tech  : float | None   Technical Score 0–100
     macro : float | None   Macro Score 0–100
 

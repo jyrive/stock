@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unified CLI — single entry point for the Buffett Stock Screener toolkit.
+Unified CLI — single entry point for the Stock Screener toolkit.
 
 Usage:
     python stock.py analyze [TICKERS...]       Fundamental analysis (EPS, ROE, FCF, BAL, DIV, DCF)
@@ -31,7 +31,7 @@ import sys
 def _help():
     print("""
 ╔══════════════════════════════════════════════════════════════════════╗
-║           BUFFETT STOCK SCREENER — Unified CLI                      ║
+║           STOCK SCREENER — Unified CLI                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 Commands:
@@ -57,7 +57,7 @@ Commands:
                                  convergence, produce verdict + sizing.
 
   screen [preset]                Discover new candidates via Finviz
-                                 Presets: buffett, high_roe, fcf_machines, ...
+                                 Presets: quality, high_roe, fcf_machines, ...
                                  Use 'screen --list' to see all presets.
 
   history [ticker|--movers]      Browse historical scores from SQLite
@@ -66,7 +66,7 @@ Commands:
                                  --movers = biggest score changes
 
   deepdive TICKER                Manual due-diligence checklist
-                                 Tailored Buffett-style research guide
+                                 Tailored fundamental research guide
                                  with 10 sections based on actual data.
 
   chart TICKER [TICKER...]       Generate score trend chart (PNG)

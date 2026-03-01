@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Buffett Fundamental Analyzer
+Fundamental Analyzer
 
 Deep-scores stocks on EPS growth, ROE, FCF, and DCF intrinsic value.
 Saves results to scores.db for historical tracking.
@@ -35,7 +35,7 @@ warnings.filterwarnings("ignore")
 
 
 def _compute_score(eps, roe, fcf, bal, div, dcf, rev=None):
-    """Compute weighted Buffett score from sub-scores."""
+    """Compute weighted fundamental score from sub-scores."""
     w = get_weights()
     rev_score = rev.get("revenue_score", 0) if rev else 0
     return round(
@@ -51,7 +51,7 @@ def _compute_score(eps, roe, fcf, bal, div, dcf, rev=None):
 
 
 def screen_stock(ticker_symbol, index, total):
-    """Screen a single stock against all Buffett criteria."""
+    """Screen a single stock against all fundamental criteria."""
     print(f"  [{index}/{total}] Analyzing {ticker_symbol}...")
 
     data = get_financial_data(ticker_symbol)
@@ -85,7 +85,7 @@ def screen_stock(ticker_symbol, index, total):
         "dcf_analysis": dcf,
         "revenue_analysis": rev,
         "tech_analysis": tech,
-        "buffett_score": total_score,
+        "fundamental_score": total_score,
     }
 
 
@@ -126,7 +126,7 @@ def main():
     enable_cache()
 
     print("=" * 80)
-    print("WARREN BUFFETT STYLE STOCK SCREENER")
+    print("FUNDAMENTAL STOCK SCREENER")
     print("=" * 80)
     print(f"\nScreening {len(candidates)} companies...\n")
 
@@ -137,11 +137,11 @@ def main():
             results.append(result)
         time.sleep(0.3)
 
-    results.sort(key=lambda x: x["buffett_score"], reverse=True)
+    results.sort(key=lambda x: x["fundamental_score"], reverse=True)
 
     if summary_only:
         flat = [flatten_result(r) for r in results]
-        print_summary_table(flat, title="BUFFETT SCORE SUMMARY")
+        print_summary_table(flat, title="FUNDAMENTAL SCORE SUMMARY")
     else:
         print_results(results)
 

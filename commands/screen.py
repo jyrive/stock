@@ -2,17 +2,17 @@
 """
 Stock Screener
 
-Scans online screeners (Finviz) for stocks matching Buffett-style criteria
+Scans online screeners (Finviz) for stocks matching quality criteria
 and shows candidates NOT already in your tickers.txt.
 
 Usage:
-    python stock.py screen               # default "buffett" preset
+    python stock.py screen               # default "quality" preset
     python stock.py screen high_roe      # use a specific preset
     python stock.py screen --list        # show available presets
 
 Presets:
-    buffett       Classic Buffett: high ROE, profitable, large-cap, low debt
-    buffett_mega  Buffett mega-caps: >$200B, high ROE, strong margins
+    quality        Classic quality: high ROE, profitable, large-cap, low debt
+    quality_mega   Quality mega-caps: >$200B, high ROE, strong margins
     growth_value  Growth at reasonable price: mid+ cap, growing, P/E < 25
     high_roe      High ROE screener: exceptional ROE (>30%) across cap sizes
     fcf_machines  FCF machines: profitable, high margins, low debt
@@ -43,7 +43,7 @@ def main():
 
         preset = arg
     else:
-        preset = "buffett"
+        preset = "quality"
 
     if preset not in PRESETS:
         print(f"Unknown preset: '{preset}'")

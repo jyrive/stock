@@ -16,7 +16,7 @@ def _sample_results():
         "market_cap_b": 3000.0,
         "current_price": 190.0,
         "trailing_pe": 30.0,
-        "buffett_score": 75.0,
+        "fundamental_score": 75.0,
         "eps_analysis": {
             "eps_score": 80,
             "eps_growth_rate": 12.5,
@@ -84,7 +84,7 @@ class TestExport:
 
         row = _flat_row(_sample_results()[0])
         assert "Symbol" in row
-        assert "Buffett Score" in row
+        assert "Fundamental Score" in row
         assert "Revenue CAGR (%)" in row
         assert "Revenue Growing" in row
         assert "Intrinsic Value" in row

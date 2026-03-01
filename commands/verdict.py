@@ -47,11 +47,11 @@ def _resolve_tickers(args):
     return unique
 
 
-def _get_buffett_scores():
-    """Fetch latest Buffett scores from the database."""
+def _get_fundamental_scores():
+    """Fetch latest fundamental scores from the database."""
     try:
         from utils.database import get_latest_scores
-        return {r["symbol"]: r.get("buffett_score") for r in get_latest_scores()}
+        return {r["symbol"]: r.get("fundamental_score") for r in get_latest_scores()}
     except Exception:
         return {}
 
@@ -78,8 +78,8 @@ def main():
     macro = analyze_macro()
     macro_score = macro["macro_score"]
 
-    # 2. Fetch Buffett scores from DB
-    buffett_scores = _get_buffett_scores()
+    # 2. Fetch fundamental scores from DB
+    fundamental_scores = _get_fundamental_scores()
 
     # 3. Fetch technical for each ticker
     print(f"  Analyzing {len(tickers)} stock(s)...\n")
@@ -89,7 +89,7 @@ def main():
     for i, ticker in enumerate(tickers, 1):
         ta = analyze_technical(ticker)
         tech_score = ta.get("tech_score", 0) if ta else None
-        fund_score = buffett_scores.get(ticker)
+        fund_score = fundamental_scores.get(ticker)
 
         if fund_score is None:
             missing_fundamental.append(ticker)
@@ -124,7 +124,7 @@ def main():
 
     # Warn about missing fundamentals
     if missing_fundamental:
-        print(f"\n  ⚠️  No Buffett Score for: {', '.join(missing_fundamental)}")
+        print(f"\n  ⚠️  No Fundamental Score for: {', '.join(missing_fundamental)}")
         print(f"     Run: python stock.py analyze {' '.join(missing_fundamental)}")
 
     print()

@@ -18,7 +18,7 @@ def _fmt(row):
         return str(v) if v is not None else "-"
 
     return {
-        "score": f"{row['buffett_score']:.1f}" if row.get("buffett_score") else "-",
+        "score": f"{row['fundamental_score']:.1f}" if row.get("fundamental_score") else "-",
         "eps": _ss("eps_score"),
         "roe": _ss("roe_score"),
         "fcf": _ss("fcf_score"),
@@ -50,7 +50,7 @@ def _color_fmt(row):
     if not USE_COLOR:
         return _fmt(row)
 
-    score = row.get("buffett_score")
+    score = row.get("fundamental_score")
     eps_s = row.get("eps_score")
     roe_s = row.get("roe_score")
     fcf_s = row.get("fcf_score")
@@ -152,7 +152,7 @@ def flatten_result(r):
         "market_cap_b": r.get("market_cap_b"),
         "current_price": r.get("current_price"),
         "trailing_pe": r.get("trailing_pe"),
-        "buffett_score": r.get("buffett_score"),
+        "fundamental_score": r.get("fundamental_score"),
         "eps_score": r["eps_analysis"]["eps_score"],
         "eps_cagr": r["eps_analysis"].get("eps_growth_rate"),
         "roe_score": r["roe_analysis"]["roe_score"],
@@ -211,7 +211,7 @@ def print_results(results, top_n=20):
     top = results[:top_n]
 
     print("\n" + "=" * 80)
-    print("TOP COMPANIES - BUFFETT CRITERIA RANKING")
+    print("TOP COMPANIES - FUNDAMENTAL CRITERIA RANKING")
     print("=" * 80)
 
     for i, r in enumerate(top, 1):
@@ -220,8 +220,8 @@ def print_results(results, top_n=20):
         print(f"{'─' * 70}")
         print(f"  Sector: {r['sector']} | Industry: {r['industry']}")
         print(f"  Market Cap: ${r['market_cap_b']}B | Price: ${r['current_price']}")
-        score_str = score_color(r['buffett_score']) if USE_COLOR else f"{r['buffett_score']}"
-        print(f"  Buffett Score: {score_str}/100")
+        score_str = score_color(r['fundamental_score']) if USE_COLOR else f"{r['fundamental_score']}"
+        print(f"  Fundamental Score: {score_str}/100")
 
         # EPS
         eps = r["eps_analysis"]
@@ -336,7 +336,7 @@ def print_results(results, top_n=20):
         tech_score = tech.get("tech_score")
         if tech_score is not None:
             from output.technical import _entry_rating
-            stars, label = _entry_rating(tech_score, r["buffett_score"])
+            stars, label = _entry_rating(tech_score, r["fundamental_score"])
             print(f"\n  📉 TECHNICAL ENTRY SIGNALS (Score: {tech_score}/100)")
             rsi = tech.get("rsi_14")
             pct200 = tech.get("price_vs_sma200_pct")

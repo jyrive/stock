@@ -1,8 +1,8 @@
-# Buffett Stock Screener
+# Stock Screener
 
-A Python toolkit for finding and analyzing stocks using Warren Buffett's investment principles.
+A Python toolkit for finding and analyzing stocks using fundamental investment principles.
 
-- **Screen** — scan Finviz for candidates matching Buffett-style filters
+- **Screen** — scan Finviz for candidates matching quality filters
 - **Analyze** — deep-score stocks on EPS growth, ROE, FCF, balance sheet, dividends, and DCF intrinsic value
 - **Technical** — entry-timing signals using RSI, SMA, Bollinger Bands, MACD, and 52-week range
 - **Macro** — global macro environment dashboard (VIX, yields, S&P/STOXX/Nikkei/EM, commodities, USD)
@@ -60,7 +60,7 @@ python stock.py AAPL MSFT GOOGL
 
 | Layer | Score | Question |
 |-------|-------|----------|
-| Buffett Score | 0–100 | **WHAT** to buy (fundamental quality) |
+| Fundamental Score | 0–100 | **WHAT** to buy (fundamental quality) |
 | Technical Score | 0–100 | **WHEN** to buy (stock-level entry) |
 | Macro Score | 0–100 | **HOW MUCH** to buy (position sizing) |
 
@@ -70,11 +70,11 @@ The `verdict` command converges all three into an actionable verdict (STRONG BUY
 
 ---
 
-## Buffett's Method
+## Fundamental Method
 
-The tool automates Buffett's quantitative steps (EPS, ROE, FCF, DCF, balance sheet, dividends) and guides you through the qualitative ones (moat, management, business understanding) via the `deepdive` command.
+The tool automates the quantitative steps (EPS, ROE, FCF, DCF, balance sheet, dividends) and guides you through the qualitative ones (moat, management, business understanding) via the `deepdive` command.
 
-**Full mapping →** [docs/buffett-method.md](docs/buffett-method.md)
+**Full mapping →** [docs/fundamental-method.md](docs/fundamental-method.md)
 
 ---
 
@@ -134,7 +134,7 @@ python -m pytest tests/ -v
 |----------|---------|
 | [docs/commands.md](docs/commands.md) | All CLI commands, workflows, ticker management, example output |
 | [docs/scoring.md](docs/scoring.md) | Scoring formulas, weights, verdict logic, table column reference |
-| [docs/buffett-method.md](docs/buffett-method.md) | How Buffett's 15-step process maps to this tool |
+| [docs/fundamental-method.md](docs/fundamental-method.md) | How the 15-step fundamental process maps to this tool |
 | [docs/project-structure.md](docs/project-structure.md) | Directory layout, architecture, package dependencies |
 
 ---

@@ -1,4 +1,4 @@
-"""Fundamental analysis — Buffett-style scoring modules.
+"""Fundamental analysis — fundamental scoring modules.
 
 Each module takes a ``data`` dict (from ``utils.data.get_financial_data``)
 and returns an analysis dict with a score 0–100.

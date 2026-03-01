@@ -4,7 +4,7 @@ Fetches global macro indicators via yfinance and scores the current
 environment for equity investing (0–100, higher = more favorable).
 
 Three-layer decision model:
-    1. Buffett Score  → WHAT to buy  (fundamental quality)
+    1. Fundamental Score  → WHAT to buy  (fundamental quality)
     2. Technical Score → WHEN to buy  (stock-level entry)
     3. Macro Score    → HOW MUCH     (position sizing context)
 

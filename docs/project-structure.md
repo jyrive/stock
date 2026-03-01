@@ -81,7 +81,7 @@ The codebase is organized into independent domain packages:
 
 | Package | Responsibility | Dependencies |
 |---------|---------------|--------------|
-| `fundamental/` | Score stocks on 7 Buffett criteria | `utils/data`, `utils/config` |
+| `fundamental/` | Score stocks on 7 fundamental criteria | `utils/data`, `utils/config` |
 | `technical/` | Compute technical indicators & score | `numpy` |
 | `macro/` | Fetch & score global macro indicators | `yfinance`, `numpy` |
 | `verdict/` | Converge 3 scores into actionable verdict | None (pure logic) |

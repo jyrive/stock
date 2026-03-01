@@ -54,12 +54,12 @@ def main():
     print("  TECHNICAL ANALYSIS — Entry Timing")
     print("=" * 60)
 
-    # Try to get Buffett scores from database for combined rating
-    buffett_scores = {}
+    # Try to get fundamental scores from database for combined rating
+    fundamental_scores = {}
     try:
         from utils.database import get_latest_scores
         for row in get_latest_scores():
-            buffett_scores[row["symbol"]] = row.get("buffett_score")
+            fundamental_scores[row["symbol"]] = row.get("fundamental_score")
     except Exception:
         pass
 
@@ -67,8 +67,8 @@ def main():
     for i, ticker in enumerate(tickers, 1):
         print(f"\n  [{i}/{len(tickers)}] Fetching price data for {ticker}...")
         ta = analyze_technical(ticker)
-        bs = buffett_scores.get(ticker)
-        print_technical(ta, buffett_score=bs)
+        bs = fundamental_scores.get(ticker)
+        print_technical(ta, fundamental_score=bs)
         results.append((ta, bs))
         if i < len(tickers):
             time.sleep(0.3)
@@ -101,7 +101,7 @@ def main():
             print(f"  {symbol:<8}{tech:>6}{bs_str:>6}{rsi_str:>6}{pct200_str:>8}{bb_str:>6}{w52_str:>6}  {stars} {label}")
 
         print(f"\n  Tech = Technical Score (0-100, higher = better entry)")
-        print(f"  Buff = Buffett Score | RSI = 14-day RSI")
+        print(f"  Fund = Fundamental Score | RSI = 14-day RSI")
         print(f"  vs200 = Price vs 200-day MA | BB% = Bollinger position | 52w% = 52-week position")
         print()
 

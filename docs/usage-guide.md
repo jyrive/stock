@@ -7,7 +7,7 @@ A practical guide for finding quality stocks and tracking your picks against the
 ## Quick Start (10 minutes)
 
 ```bash
-# 1. Find candidates — scans Finviz for Buffett-style stocks
+# 1. Find candidates — scans Finviz for quality stocks
 python stock.py discover
 
 # 2. Add the best ones to your watchlist
@@ -57,7 +57,7 @@ python stock.py monthly
 
 Deeper review: full per-stock breakdowns, fresh discovery scan, comparison tables.
 
-**That's it.** Buffett checks his stocks infrequently — you should too.
+**That's it.** Check your stocks infrequently — you should too.
 
 ---
 
@@ -67,7 +67,7 @@ The tool answers three questions:
 
 | Question | Score | Command |
 |----------|-------|---------|
-| **WHAT** to buy? | Buffett Score (0–100) | `analyze`, `watchlist` |
+| **WHAT** to buy? | Fundamental Score (0–100) | `analyze`, `watchlist` |
 | **WHEN** to buy? | Tech Score (0–100) | `technical`, `verdict` |
 | **HOW MUCH** to buy? | Macro Score (0–100) | `macro` |
 
@@ -93,7 +93,7 @@ The `verdict` command **combines all three** into a single recommendation:
 python stock.py discover
 ```
 
-Scans 5 Finviz presets (buffett, mega, growth_value, high_roe, fcf_machines). Stocks matching multiple presets get more ★ stars = higher conviction.
+Scans 5 Finviz presets (quality, mega, growth_value, high_roe, fcf_machines). Stocks matching multiple presets get more ★ stars = higher conviction.
 
 ### Step 2: Research the Best Ones
 
@@ -109,7 +109,7 @@ python stock.py verdict watchlist
 ```
 
 **Look for:**
-- Buffett Score > 60
+- Fundamental Score > 60
 - Positive Margin of Safety (stock is undervalued)
 - Verdict = BUY or STRONG BUY
 
@@ -147,7 +147,7 @@ python stock.py portfolio sell ACN    # if thesis breaks
 ```
 
 Sell triggers to watch for:
-- Buffett Score drops below 40
+- Fundamental Score drops below 40
 - Verdict changes to AVOID
 - `alerts` shows significant score drop
 - Your deep-dive thesis no longer holds
@@ -158,7 +158,7 @@ Sell triggers to watch for:
 
 | Metric | Good | Great | Red Flag |
 |--------|------|-------|----------|
-| Buffett Score | > 55 | > 70 | < 35 |
+| Fundamental Score | > 55 | > 70 | < 35 |
 | Margin of Safety | > 0% | > 20% | < -50% |
 | ROE | > 15% | > 25% | < 10% |
 | Debt/Equity | < 100 | < 50 | > 200 |
@@ -171,7 +171,7 @@ Sell triggers to watch for:
 
 ## Tips
 
-- **Don't over-trade.** Buffett holds stocks for years. Check weekly, act monthly.
+- **Don't over-trade.** Hold stocks for years. Check weekly, act monthly.
 - **Conviction matters.** Stocks with ★★★+ from `discover` match multiple quality filters.
 - **Margin of Safety is key.** A great company at a bad price is a bad investment.
 - **Use `deepdive` before every buy.** Numbers are necessary but not sufficient.

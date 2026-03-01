@@ -13,7 +13,7 @@ CONFIG_PATH = os.path.join(_PROJECT_ROOT, "config.yaml")
 
 DEFAULTS = {
     # ── Scoring weights ──────────────────────────────────────────
-    # How much each module contributes to the final Buffett score.
+    # How much each module contributes to the final fundamental score.
     # All six values MUST sum to 1.0 (auto-normalized if they don't).
     # Range per value: 0.0 – 1.0.  Set to 0 to ignore a module entirely.
     "weights": {
@@ -96,7 +96,7 @@ DEFAULTS = {
     # Controls what triggers price target & score-drop alerts.
     "alerts": {
         "margin_of_safety_min": 0,     # MoS% above this triggers an undervalued alert.  Range: -20 – 30
-        "score_drop_threshold": 10,    # Buffett score drop ≥ this triggers an alert.    Range: 5 – 30
+        "score_drop_threshold": 10,    # Fundamental score drop ≥ this triggers an alert.    Range: 5 – 30
     },
 }
 
@@ -147,7 +147,7 @@ def save_default_config(path=None):
         return False
 
     with open(filepath, "w") as f:
-        f.write("# Buffett Stock Screener — Configuration\n")
+        f.write("# Stock Screener — Configuration\n")
         f.write("# Edit values below to customize scoring and analysis.\n")
         f.write("# Delete this file to reset to defaults.\n\n")
         yaml.dump(DEFAULTS, f, default_flow_style=False, sort_keys=False)

@@ -33,7 +33,7 @@ def plot_score_history(histories, output_path=None):
             continue
 
         dates = [datetime.strptime(r["scan_date"], "%Y-%m-%d") for r in rows]
-        scores = [r["buffett_score"] for r in rows]
+        scores = [r["fundamental_score"] for r in rows]
 
         ax.plot(dates, scores, "o-", label=symbol, linewidth=2, markersize=6)
         symbols.append(symbol)
@@ -44,9 +44,9 @@ def plot_score_history(histories, output_path=None):
         return None
 
     # Styling
-    ax.set_ylabel("Buffett Score", fontsize=12)
+    ax.set_ylabel("Fundamental Score", fontsize=12)
     ax.set_xlabel("Scan Date", fontsize=12)
-    ax.set_title("Buffett Score Trend", fontsize=14, fontweight="bold")
+    ax.set_title("Fundamental Score Trend", fontsize=14, fontweight="bold")
     ax.set_ylim(0, 105)
     ax.axhline(y=70, color="green", linestyle="--", alpha=0.3, label="Strong (70+)")
     ax.axhline(y=40, color="orange", linestyle="--", alpha=0.3, label="Moderate (40)")

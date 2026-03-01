@@ -58,7 +58,7 @@ def _analyze_list(tickers, label):
         if result:
             results.append(result)
         time.sleep(0.3)
-    results.sort(key=lambda x: x["buffett_score"], reverse=True)
+    results.sort(key=lambda x: x["fundamental_score"], reverse=True)
     return results
 
 
@@ -77,9 +77,9 @@ def _print_side_by_side(results_a, label_a, results_b, label_b):
     print(f"  {'─' * 67}")
     print(f"  {'Stocks':<25}  {len(results_a):>20}  {len(results_b):>20}")
 
-    avg_a = _avg(results_a, "buffett_score")
-    avg_b = _avg(results_b, "buffett_score")
-    print(f"  {'Avg Buffett Score':<25}  {avg_a:>20.1f}  {avg_b:>20.1f}")
+    avg_a = _avg(results_a, "fundamental_score")
+    avg_b = _avg(results_b, "fundamental_score")
+    print(f"  {'Avg Fundamental Score':<25}  {avg_a:>20.1f}  {avg_b:>20.1f}")
 
     avg_pe_a = _avg(results_a, "trailing_pe")
     avg_pe_b = _avg(results_b, "trailing_pe")
@@ -94,12 +94,12 @@ def _print_side_by_side(results_a, label_a, results_b, label_b):
     # Top scorer each
     if results_a:
         top_a = results_a[0]
-        print(f"  {'Top scorer':<25}  {top_a['symbol'] + ' (' + str(top_a['buffett_score']) + ')':>20}", end="")
+        print(f"  {'Top scorer':<25}  {top_a['symbol'] + ' (' + str(top_a['fundamental_score']) + ')':>20}", end="")
     else:
         print(f"  {'Top scorer':<25}  {'—':>20}", end="")
     if results_b:
         top_b = results_b[0]
-        print(f"  {top_b['symbol'] + ' (' + str(top_b['buffett_score']) + ')':>20}")
+        print(f"  {top_b['symbol'] + ' (' + str(top_b['fundamental_score']) + ')':>20}")
     else:
         print(f"  {'—':>20}")
 
@@ -115,11 +115,11 @@ def _print_side_by_side(results_a, label_a, results_b, label_b):
         if i < len(results_a):
             r = results_a[i]
             uv = " ✦" if r.get("dcf_analysis", {}).get("undervalued") else ""
-            col_a = f"{r['symbol']:<8} {r['buffett_score']:>5.0f}{uv}"
+            col_a = f"{r['symbol']:<8} {r['fundamental_score']:>5.0f}{uv}"
         if i < len(results_b):
             r = results_b[i]
             uv = " ✦" if r.get("dcf_analysis", {}).get("undervalued") else ""
-            col_b = f"{r['symbol']:<8} {r['buffett_score']:>5.0f}{uv}"
+            col_b = f"{r['symbol']:<8} {r['fundamental_score']:>5.0f}{uv}"
         print(f"  {i + 1:>4}. {col_a:<32} {col_b:<32}")
 
     print(f"\n  ✦ = undervalued (intrinsic value > current price)")

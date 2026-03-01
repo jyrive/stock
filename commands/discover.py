@@ -6,7 +6,7 @@ portfolio or watchlist, and presents the best new candidates.
 Usage:
     python stock.py discover              # scan all presets
     python stock.py discover --analyze    # scan + auto-analyze top candidates
-    python stock.py discover buffett      # scan one preset only
+    python stock.py discover quality      # scan one preset only
 """
 
 import sys

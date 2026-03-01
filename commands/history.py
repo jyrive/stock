@@ -61,7 +61,7 @@ def print_ticker_history(symbol, history):
 
     prev_score = None
     for row in history:
-        score = row.get("buffett_score", 0)
+        score = row.get("fundamental_score", 0)
         if USE_COLOR:
             f = _color_fmt(row)
         else:
@@ -90,8 +90,8 @@ def print_ticker_history(symbol, history):
 
     # Summary
     if len(history) >= 2:
-        first = history[0]["buffett_score"]
-        last = history[-1]["buffett_score"]
+        first = history[0]["fundamental_score"]
+        last = history[-1]["fundamental_score"]
         change = last - first
         direction = "▲" if change > 0 else "▼" if change < 0 else "="
         print(f"\n  Overall: {first:.1f} → {last:.1f}  ({direction} {abs(change):.1f} pts"

@@ -1,6 +1,6 @@
 # Scoring Reference
 
-## Buffett Score (0–100)
+## Fundamental Score (0–100)
 
 Weighted sum of seven sub-scores:
 
@@ -14,7 +14,7 @@ Weighted sum of seven sub-scores:
 | **Valuation (DCF)** | 15% | Margin of safety based on discounted cash flow |
 | **Revenue Growth** | 15% | Organic demand — confirms earnings growth is real |
 
-> **Note:** The Technical Score (0–100) and Macro Score (0–100) are **separate** scores. Technical focuses on entry timing, Macro on environment/position sizing. Neither is part of the Buffett Score — all three are combined by the `verdict` command.
+> **Note:** The Technical Score (0–100) and Macro Score (0–100) are **separate** scores. Technical focuses on entry timing, Macro on environment/position sizing. Neither is part of the Fundamental Score — all three are combined by the `verdict` command.
 
 ---
 
@@ -92,7 +92,7 @@ For dividend payers, the score combines: payout sustainability (40 pts), yield q
 
 ## Revenue Growth (0–100) — Weighted 15%
 
-Revenue growth is now part of the weighted Buffett Score, rewarding companies with real organic demand growth.
+Revenue growth is now part of the weighted Fundamental Score, rewarding companies with real organic demand growth.
 
 | Component | How It's Calculated | Points |
 |-----------|---------------------|--------|
@@ -114,7 +114,7 @@ A separate score focused on *when* to buy. Higher = better entry opportunity.
 | **52-week position** | 15 pts | Near low (< 20%) = 15, mid-range = 8, near high = 0 |
 | **MACD** | 15 pts | Bullish crossover = 15, positive histogram = 10 |
 
-The Technical Score is independent from the Buffett Score.
+The Technical Score is independent from the Fundamental Score.
 
 ---
 
@@ -134,7 +134,7 @@ Global breadth (how many of US / Europe / Asia / EM trade above their 200-MA)
 provides additional context but is not scored numerically.
 
 **Three-layer model:**
-- Buffett Score → **WHAT** to buy (fundamental quality)
+- Fundamental Score → **WHAT** to buy (fundamental quality)
 - Technical Score → **WHEN** to buy (entry timing)
 - Macro Score → **HOW MUCH** to buy (position sizing)
 
@@ -165,7 +165,7 @@ Veto rule: any score < 25 caps verdict at WATCH. Macro ≥ 70 gives ×1.25 sizin
 | **#** | Rank | Position sorted by Score (highest first) |
 | **Symbol** | Ticker | Stock ticker, e.g. AAPL |
 | **Name** | Company Name | Full name (truncated to fit) |
-| **Score** | Buffett Score | Weighted score 0–100 |
+| **Score** | Fundamental Score | Weighted score 0–100 |
 | **EPS** | EPS Sub-Score | Earnings consistency + growth (0–100) |
 | **ROE** | ROE Sub-Score | Return on equity + debt check (0–100) |
 | **FCF** | FCF Sub-Score | Free cash flow strength (0–100) |

@@ -17,7 +17,7 @@ def _sample_result(symbol="AAPL", score=75.0, mos=10.0, iv=200.0, price=180.0):
         "market_cap_b": 3000.0,
         "current_price": price,
         "trailing_pe": 25.0,
-        "buffett_score": score,
+        "fundamental_score": score,
         "eps_analysis": {"eps_score": 75, "eps_growth_rate": 10.0, "eps_consistent": True},
         "roe_analysis": {"roe_score": 70, "roe": 20.0, "debt_to_equity": 50.0},
         "fcf_analysis": {"fcf_score": 80, "fcf_current": 50.0, "fcf_yield": 3.0, "fcf_growing": True},

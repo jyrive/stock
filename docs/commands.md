@@ -34,10 +34,10 @@ python stock.py AAPL MSFT GOOGL      # same as: python stock.py analyze AAPL MSF
 
 ## 1. Screen — Find Candidates
 
-Scan Finviz for stocks matching Buffett-style filters. Shows candidates **not already in your `tickers.txt`**:
+Scan Finviz for stocks matching quality filters. Shows candidates **not already in your `tickers.txt`**:
 
 ```bash
-python stock.py screen                # default "buffett" preset
+python stock.py screen                # default "quality" preset
 python stock.py screen high_roe      # use a specific preset
 python stock.py screen --list        # show available presets
 ```
@@ -46,8 +46,8 @@ python stock.py screen --list        # show available presets
 
 | Preset | Market Cap | Key Filters |
 |--------|-----------|-------------|
-| `buffett` | Large+ | ROE >15%, EPS growth, margins >15% |
-| `buffett_mega` | Mega (>$200B) | ROE >15%, margins >20% |
+| `quality` | Large+ | ROE >15%, EPS growth, margins >15% |
+| `quality_mega` | Mega (>$200B) | ROE >15%, margins >20% |
 | `growth_value` | Mid+ | ROE >15%, EPS growth >10%, P/E <25 |
 | `high_roe` | Mid+ | ROE >30% |
 | `fcf_machines` | Mid+ | ROE >15%, margins >20%, current ratio >1.5 |
@@ -58,7 +58,7 @@ Output includes a ready-to-paste command to analyze the new candidates.
 
 ## 2. Technical — Entry Timing Signals
 
-Spot buying opportunities with technical indicators. The **Tech Score** (0–100) tells you *when* to buy — pair it with the Buffett Score to know *what* to buy:
+Spot buying opportunities with technical indicators. The **Tech Score** (0–100) tells you *when* to buy — pair it with the Fundamental Score to know *what* to buy:
 
 ```bash
 python stock.py technical AAPL          # single stock — detailed breakdown
@@ -77,11 +77,11 @@ Indicators analyzed:
 | **MACD(12,26,9)** | Trend momentum & crossovers | Bullish crossover |
 | **52-week position** | Price range context | Near 52-week low |
 
-The **Entry Rating** combines Tech Score + Buffett Score:
+The **Entry Rating** combines Tech Score + Fundamental Score:
 
 | Rating | Meaning |
 |--------|--------|
-| ★★★★★ HIGHEST CONVICTION | High Buffett + high Tech — strong buy signal |
+| ★★★★★ HIGHEST CONVICTION | High Fundamental + high Tech — strong buy signal |
 | ★★★★☆ GOOD ENTRY | Good fundamentals + favorable technical setup |
 | ★★★☆☆ FAIR | Mixed signals — proceed with caution |
 | ★★☆☆☆ NEUTRAL | No strong entry signal |
@@ -117,7 +117,7 @@ Indicators tracked:
 
 | Layer | Score | Question |
 |-------|-------|----------|
-| Buffett Score | 0–100 | **WHAT** to buy (fundamental quality) |
+| Fundamental Score | 0–100 | **WHAT** to buy (fundamental quality) |
 | Technical Score | 0–100 | **WHEN** to buy (stock-level entry) |
 | Macro Score | 0–100 | **HOW MUCH** to buy (position sizing) |
 
@@ -136,7 +136,7 @@ Macro analysis is automatically included in all workflow commands (daily one-lin
 
 ## 4. Verdict — Triangulated Decision Engine
 
-Converge all three scores into a single actionable verdict — inspired by Pietari Laurila's triangulation approach. Instead of averaging, the engine classifies each score into a zone and checks whether independent signals *agree*:
+Converge all three scores into a single actionable verdict — the engine uses a triangulation approach. Instead of averaging, the engine classifies each score into a zone and checks whether independent signals *agree*:
 
 ```bash
 python stock.py verdict AAPL              # single stock (full card)
@@ -251,9 +251,9 @@ Three alert types are generated:
 
 | Alert | What It Flags |
 |-------|---------------|
-| **Bargains** | Stocks with Buffett Score ≥55 AND margin of safety >10% |
+| **Bargains** | Stocks with Fundamental Score ≥55 AND margin of safety >10% |
 | **Undervalued** | All stocks where margin of safety is positive (price < intrinsic value) |
-| **Score Drops** | Stocks whose Buffett Score dropped ≥10 points between scans |
+| **Score Drops** | Stocks whose Fundamental Score dropped ≥10 points between scans |
 
 Thresholds are configurable in `config.yaml` (see Configuration section below).
 
@@ -357,7 +357,7 @@ In the **analyze** output, each stock shows:
 
 In the **deep dive**, the Earnings Quality section compares EPS CAGR vs. Revenue CAGR. If EPS is growing much faster than revenue, a warning flags potential buyback-driven growth.
 
-> Revenue is informational — it is NOT part of the weighted Buffett score.
+> Revenue is informational — it is NOT part of the weighted fundamental score.
 
 ---
 
@@ -404,7 +404,7 @@ Scan all Finviz presets at once, deduplicate, and rank by conviction (number of 
 ```bash
 python stock.py discover               # scan all 5 presets
 python stock.py discover --analyze     # also auto-analyze top 10 candidates
-python stock.py discover buffett       # scan only one preset
+python stock.py discover quality       # scan only one preset
 ```
 
 Stocks already in your portfolio or watchlist are excluded. Results are ranked by "conviction" — a stock matching 4 presets is a stronger signal than one matching 1.
@@ -518,7 +518,7 @@ Each stock gets a detailed per-stock breakdown (with color-coded values in termi
   #1  MSFT - Microsoft Corporation
 ──────────────────────────────────────────────────────────────────────
   Sector: Technology | Market Cap: $2985.7B | Price: $449.26
-  Buffett Score: 65.8/100
+  Fundamental Score: 65.8/100
 
   📈 EPS GROWTH (Score: 81/100)
      EPS History: 2022: $9.65 → 2023: $9.68 → 2024: $11.8 → 2025: $13.64

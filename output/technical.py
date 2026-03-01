@@ -1,14 +1,14 @@
 """Technical analysis output — print functions for TA results."""
 
 
-def _entry_rating(tech_score, buffett_score=None):
+def _entry_rating(tech_score, fundamental_score=None):
     """Generate a star rating + label for combined conviction.
 
     Returns (stars_str, label) like ("★★★★☆", "STRONG BUY SIGNAL").
     """
-    if buffett_score is not None and buffett_score >= 55 and tech_score >= 70:
+    if fundamental_score is not None and fundamental_score >= 55 and tech_score >= 70:
         return "★★★★★", "HIGHEST CONVICTION"
-    if buffett_score is not None and buffett_score >= 55 and tech_score >= 50:
+    if fundamental_score is not None and fundamental_score >= 55 and tech_score >= 50:
         return "★★★★☆", "STRONG BUY SIGNAL"
     if tech_score >= 70:
         return "★★★★☆", "STRONG ENTRY POINT"
@@ -19,7 +19,7 @@ def _entry_rating(tech_score, buffett_score=None):
     return "★☆☆☆☆", "WAIT FOR BETTER ENTRY"
 
 
-def print_technical(ta, buffett_score=None):
+def print_technical(ta, fundamental_score=None):
     """Print detailed technical analysis for a single ticker."""
     symbol = ta["symbol"]
     price = ta.get("current_price")
@@ -69,10 +69,10 @@ def print_technical(ta, buffett_score=None):
         print(f"  {'MACD':<25}{'-':>12}  N/A (insufficient data)")
 
     # Tech score
-    stars, label = _entry_rating(tech_score, buffett_score)
+    stars, label = _entry_rating(tech_score, fundamental_score)
     print(f"\n  Tech Score: {tech_score}/100")
-    if buffett_score is not None:
-        print(f"  Buffett Score: {buffett_score}/100")
+    if fundamental_score is not None:
+        print(f"  Fundamental Score: {fundamental_score}/100")
     print(f"  Entry Rating: {stars}  {label}")
 
     # Signals

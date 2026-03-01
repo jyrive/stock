@@ -2,7 +2,7 @@
 """
 Deep Dive Guide — Manual Due-Diligence Checklist
 
-Runs the Buffett analysis on a single stock and prints a tailored
+Runs the fundamental analysis on a single stock and prints a tailored
 checklist of what to research manually, based on the actual numbers.
 
 Usage:
@@ -80,7 +80,7 @@ def _run_analysis(ticker):
         "dividend_analysis": div,
         "dcf_analysis": dcf,
         "revenue_analysis": rev,
-        "buffett_score": round(total_score, 1),
+        "fundamental_score": round(total_score, 1),
         "_raw_data": data,  # Keep raw data for peer comparison
     }
 
@@ -109,7 +109,7 @@ def print_deep_dive(r):
     name = r["name"]
     sector = r["sector"]
     industry = r["industry"]
-    score = r["buffett_score"]
+    score = r["fundamental_score"]
     price = r["current_price"]
     pe = r["trailing_pe"]
     mcap = r["market_cap_b"]
@@ -127,7 +127,7 @@ def print_deep_dive(r):
     print(f"  Sector: {sector} | Industry: {industry}")
     pe_str = f"{pe:.1f}" if pe else "N/A"
     print(f"  Price: ${price:.2f} | P/E: {pe_str} | "
-          f"Market Cap: ${mcap}B | Buffett Score: {score}/100")
+          f"Market Cap: ${mcap}B | Fundamental Score: {score}/100")
     print(f"{'=' * 72}")
 
     # ── 1. Do You Understand This Business? ──────────────────────
@@ -189,7 +189,7 @@ def print_deep_dive(r):
         _todo(f"EPS is NOT consistently growing. Find out WHY:")
         _todo(f"  Was it a one-time event (restructuring, write-off)?")
         _todo(f"  Or is this business fundamentally cyclical?")
-        _todo(f"  Buffett avoids cyclical, unpredictable businesses.")
+        _todo(f"  Avoid cyclical, unpredictable businesses.")
     else:
         _todo(f"Earnings look consistent. Now verify the QUALITY:")
 
@@ -331,7 +331,7 @@ def print_deep_dive(r):
         _todo("  Or is the core business generating less cash? That's bad.")
     _todo(f"Check how {name} uses its cash (10-K / earnings call):")
     _todo("  Buybacks? Dividends? Acquisitions? Debt repayment?")
-    _todo("  Buffett prefers companies that reinvest at high returns")
+    _todo("  Prefer companies that reinvest at high returns")
 
     # ── 5b. Dividends ────────────────────────────────────────────
     _section("5b. DIVIDEND QUALITY")
@@ -492,7 +492,7 @@ def print_deep_dive(r):
         print(f"  [ ]  {i}. {check}")
 
     print()
-    print(f"  If you can't check ALL boxes, this is not a Buffett-style buy.")
+    print(f"  If you can't check ALL boxes, this does not pass all fundamental checks.")
     print()
 
     # ── 10. Where to Research ────────────────────────────────────
@@ -550,7 +550,7 @@ def main():
 
     # Save to DB too
     saved = save_scores([result])
-    print(f"  Score saved to scores.db ({saved} stock, Buffett Score: {result['buffett_score']})")
+    print(f"  Score saved to scores.db ({saved} stock, Fundamental Score: {result['fundamental_score']})")
     print()
 
 

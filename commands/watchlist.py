@@ -41,7 +41,7 @@ def _analyze_watchlist(extra_flags=None):
     for row in latest:
         if row["symbol"] in w_set:
             mos = row.get("margin_of_safety")
-            score = row.get("buffett_score")
+            score = row.get("fundamental_score")
             if mos is not None and mos > 0 and score is not None:
                 opportunities.append(row)
 
@@ -53,7 +53,7 @@ def _analyze_watchlist(extra_flags=None):
         for o in opportunities:
             price = f"${o['current_price']:.2f}" if o.get("current_price") else "-"
             iv = f"${o['intrinsic_value']:.2f}" if o.get("intrinsic_value") else "-"
-            print(f"  {o['symbol']:<8}{o['buffett_score']:>7.0f}{o['margin_of_safety']:>7.1f}%{price:>10}{iv:>10}")
+            print(f"  {o['symbol']:<8}{o['fundamental_score']:>7.0f}{o['margin_of_safety']:>7.1f}%{price:>10}{iv:>10}")
         print(f"\n  Consider: python stock.py portfolio buy {opportunities[0]['symbol']}\n")
     else:
         print("\n  No undervalued stocks on your watchlist right now.\n")

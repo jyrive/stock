@@ -2,7 +2,7 @@
 
 Scans scores.db for:
 1. Newly undervalued stocks (margin of safety turned positive)
-2. Stocks whose Buffett score dropped significantly
+2. Stocks whose fundamental score dropped significantly
 3. Custom threshold alerts from config.yaml
 """
 
@@ -27,7 +27,7 @@ def _fmt_mos(mos):
 
 
 def _fmt_score(score):
-    """Format Buffett score with color."""
+    """Format fundamental score with color."""
     if score is None:
         return dim("-") if USE_COLOR else "-"
     s = f"{score:.0f}"
@@ -60,7 +60,7 @@ def scan_alerts(db_path=None):
     for row in latest:
         symbol = row["symbol"]
         mos = row.get("margin_of_safety")
-        score = row.get("buffett_score")
+        score = row.get("fundamental_score")
         price = row.get("current_price")
         iv = row.get("intrinsic_value")
 
@@ -73,15 +73,15 @@ def scan_alerts(db_path=None):
                 "price": price,
                 "intrinsic_value": iv,
                 "margin_of_safety": mos,
-                "buffett_score": score,
+                "fundamental_score": score,
                 "scan_date": row.get("scan_date"),
             })
 
         # 2. Check for score drops
         history = get_ticker_history(symbol, db_path)
         if len(history) >= 2:
-            prev_score = history[-2].get("buffett_score")
-            curr_score = history[-1].get("buffett_score")
+            prev_score = history[-2].get("fundamental_score")
+            curr_score = history[-1].get("fundamental_score")
             if prev_score is not None and curr_score is not None:
                 drop = prev_score - curr_score
                 if drop >= score_drop_thresh:
@@ -104,13 +104,13 @@ def scan_alerts(db_path=None):
                 "price": price,
                 "intrinsic_value": iv,
                 "margin_of_safety": mos,
-                "buffett_score": score,
+                "fundamental_score": score,
             })
 
     # Sort
     undervalued.sort(key=lambda x: x.get("margin_of_safety", 0), reverse=True)
     score_drops.sort(key=lambda x: x.get("drop", 0), reverse=True)
-    bargains.sort(key=lambda x: x.get("buffett_score", 0), reverse=True)
+    bargains.sort(key=lambda x: x.get("fundamental_score", 0), reverse=True)
 
     return {
         "undervalued": undervalued,
@@ -137,7 +137,7 @@ def print_alerts(alerts):
         print(f"  {'Symbol':<8}{'Name':<26}{'Score':>7}{'Price':>9}{'IV':>9}{'MoS%':>8}")
         print(f"  {'─' * 68}")
         for b in bargains:
-            score_str = _fmt_score(b["buffett_score"])
+            score_str = _fmt_score(b["fundamental_score"])
             mos_str = _fmt_mos(b["margin_of_safety"])
             price = f"${b['price']:.2f}" if b["price"] else "-"
             iv = f"${b['intrinsic_value']:.2f}" if b["intrinsic_value"] else "-"
@@ -153,7 +153,7 @@ def print_alerts(alerts):
                       f"{price:>9}{iv:>9}"
                       f"{' ' * (8 - mos_vis)}{mos_str}")
             else:
-                print(f"  {b['symbol']:<8}{name:<26}{b['buffett_score']:>7.0f}"
+                print(f"  {b['symbol']:<8}{name:<26}{b['fundamental_score']:>7.0f}"
                       f"{price:>9}{iv:>9}{b['margin_of_safety']:>7.1f}%")
     else:
         print(f"\n  No bargain alerts (score ≥55 and MoS >10%)")
@@ -169,7 +169,7 @@ def print_alerts(alerts):
             iv = f"${u['intrinsic_value']:.2f}" if u["intrinsic_value"] else "-"
             name = (u["name"] or "")[:24]
             print(f"  {u['symbol']:<8}{name:<26}{price:>9}{iv:>9}"
-                  f"{u['margin_of_safety']:>7.1f}%{u['buffett_score']:>7.0f}")
+                  f"{u['margin_of_safety']:>7.1f}%{u['fundamental_score']:>7.0f}")
         if len(undervalued) > 15:
             print(f"  ... and {len(undervalued) - 15} more")
     else:

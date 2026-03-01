@@ -4,7 +4,7 @@ Computes RSI, moving averages, Bollinger Bands, MACD, and 52-week range
 to produce a Technical Score (0-100) — higher means better entry point
 (the stock is oversold / near support / more attractive to buy NOW).
 
-Philosophy: Buffett Score tells you WHAT to buy, Technical Score tells
+Philosophy: Fundamental Score tells you WHAT to buy, Technical Score tells
 you WHEN to buy.
 """
 

@@ -61,7 +61,7 @@ def _sample_result(symbol="AAPL", score=75.0):
             "revenue_cagr": 8.5,
             "revenue_growing": True,
         },
-        "buffett_score": score,
+        "fundamental_score": score,
     }
 
 
@@ -91,7 +91,7 @@ class TestDatabase:
         history = get_ticker_history("AAPL", db_path=self.db_path)
         assert len(history) == 1
         assert history[0]["symbol"] == "AAPL"
-        assert history[0]["buffett_score"] == 75
+        assert history[0]["fundamental_score"] == 75
 
     def test_scan_dates(self):
         save_scores([_sample_result()], db_path=self.db_path)
@@ -116,7 +116,7 @@ class TestDatabase:
             CREATE TABLE scores (
                 symbol TEXT NOT NULL,
                 scan_date TEXT NOT NULL,
-                buffett_score REAL,
+                fundamental_score REAL,
                 PRIMARY KEY (symbol, scan_date)
             )
         """)
