@@ -24,9 +24,7 @@ git clone https://github.com/jyrive/stock.git
 cd stock
 python -m venv .venv
 source .venv/bin/activate
-pip install yfinance pandas numpy finvizfinance requests-cache matplotlib pyyaml
-pip install pytest          # optional: run unit tests
-pip install openpyxl        # optional: Excel export (.xlsx)
+pip install -r requirements.txt
 ```
 
 ---
