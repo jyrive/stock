@@ -10,13 +10,9 @@ Usage:
 """
 
 import sys
-import warnings
 
 from utils.discovery import PRESETS, scan_finviz
 from utils.lists import portfolio_list, watchlist_list, watchlist_add
-
-warnings.filterwarnings("ignore")
-
 
 def _collect_all_candidates(preset_name=None):
     """Scan Finviz presets and return deduplicated candidates.
@@ -71,14 +67,22 @@ def _collect_all_candidates(preset_name=None):
 
     return all_results, excluded
 
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     # Parse flags
+    show_list = any(a in ("--list", "-l", "--help", "-h") for a in args)
     auto_analyze = "--analyze" in args
     args = [a for a in args if not a.startswith("--")]
     preset = args[0] if args else None
+
+    if show_list:
+        print("Available discovery presets:\n")
+        for name, info in PRESETS.items():
+            print(f"  {name:<16} {info['description']}")
+        print(f"\nUsage: python stock.py discover [preset]")
+        return
 
     if preset and preset not in PRESETS:
         print(f"Unknown preset: '{preset}'")
@@ -156,7 +160,6 @@ def main():
         print("  Your portfolio + watchlist cover this well.")
 
     print()
-
 
 if __name__ == "__main__":
     main()

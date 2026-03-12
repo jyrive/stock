@@ -154,7 +154,7 @@ def export_csv_from_db(tickers=None):
     Returns:
         Path to the written file.
     """
-    from utils.database import get_latest_scores
+    from utils.scores_db import get_latest_scores
 
     latest = get_latest_scores()
     if not latest:

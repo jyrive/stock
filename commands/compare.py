@@ -10,17 +10,13 @@ Usage:
 import os
 import sys
 import time
-import warnings
 
 from commands.analyze import screen_stock
-from utils.data import load_tickers
-from utils.cache import enable_cache
+from utils.lists import load_tickers
+from utils.config import enable_cache
 from utils.lists import portfolio_list, watchlist_list
 
-warnings.filterwarnings("ignore")
-
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 def _resolve_tickers(arg):
     """Resolve an argument to a list of tickers.
@@ -45,7 +41,6 @@ def _resolve_tickers(arg):
     tickers = [t.strip().upper() for t in arg.replace(",", " ").split() if t.strip()]
     return tickers, ", ".join(tickers[:3]) + ("..." if len(tickers) > 3 else "")
 
-
 def _analyze_list(tickers, label):
     """Analyze a list of tickers and return scored results."""
     if not tickers:
@@ -60,7 +55,6 @@ def _analyze_list(tickers, label):
         time.sleep(0.3)
     results.sort(key=lambda x: x["fundamental_score"], reverse=True)
     return results
-
 
 def _print_side_by_side(results_a, label_a, results_b, label_b):
     """Print comparison table."""
@@ -140,9 +134,9 @@ def _print_side_by_side(results_a, label_a, results_b, label_b):
 
     print()
 
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         print("Usage: python stock.py compare <list_A> <list_B>")
@@ -184,7 +178,6 @@ def main():
     results_b = _analyze_list(tickers_b, label_b)
 
     _print_side_by_side(results_a, label_a, results_b, label_b)
-
 
 if __name__ == "__main__":
     main()

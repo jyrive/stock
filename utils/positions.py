@@ -8,35 +8,13 @@ import os
 import sqlite3
 from datetime import date, datetime
 
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scores.db"
-)
+from utils.db import DB_PATH, get_connection, ensure_schema
 
 
 def _connect(db_path=None):
     """Open and initialise the positions table."""
-    path = db_path or DB_PATH
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS positions (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            symbol      TEXT    NOT NULL,
-            action      TEXT    NOT NULL,  -- 'BUY' or 'SELL'
-            shares      REAL    NOT NULL,
-            price       REAL    NOT NULL,
-            date        TEXT    NOT NULL,
-            note        TEXT
-        )
-    """)
-
-    conn.execute("""
-        CREATE INDEX IF NOT EXISTS idx_positions_symbol
-        ON positions (symbol)
-    """)
-
-    conn.commit()
+    conn = get_connection(db_path)
+    ensure_schema(conn, db_path)
     return conn
 
 
@@ -140,11 +118,3 @@ def has_positions(db_path=None):
     row = conn.execute("SELECT COUNT(*) FROM positions").fetchone()
     conn.close()
     return row[0] > 0
-
-
-def delete_position(position_id, db_path=None):
-    """Delete a transaction by ID (for corrections)."""
-    conn = _connect(db_path)
-    conn.execute("DELETE FROM positions WHERE id = ?", (position_id,))
-    conn.commit()
-    conn.close()

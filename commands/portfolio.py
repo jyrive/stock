@@ -67,14 +67,9 @@ def _parse_flag(args, flag, default=None):
 
 
 def _get_current_price(symbol):
-    """Fetch current price from yfinance."""
-    try:
-        import yfinance as yf
-        t = yf.Ticker(symbol)
-        info = t.info
-        return info.get("currentPrice") or info.get("regularMarketPrice")
-    except Exception:
-        return None
+    """Fetch current price from market data provider."""
+    from datasources.market import get_current_price
+    return get_current_price(symbol)
 
 
 def print_pnl(compact=False):
@@ -186,8 +181,9 @@ def print_transactions(symbol=None):
         print(f"  {t['id']:>4}  {t['date']:<12}{t['action']:<6}{t['symbol']:<8}{shares:>8}  ${t['price']:>8.2f}  {note}")
 
 
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         # Default: analyze everything + show P&L if positions exist

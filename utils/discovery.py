@@ -1,111 +1,25 @@
-"""Discover new stock candidates from online screeners (Finviz).
+"""Discover new stock candidates from online screeners.
 
-Scans Finviz for stocks matching quality filters and reports
-candidates not already in the local ticker list.
+Scans for stocks matching quality filters and reports
+candidates not already in portfolio or watchlist.
 """
 
-import os
+from datasources.screener import PRESETS, screen as scan_finviz
 
-from finvizfinance.screener.overview import Overview
-
-from .data import load_tickers, DEFAULT_TICKER_FILE
+from .lists import portfolio_list, watchlist_list
 
 
-# Predefined quality filter presets
-PRESETS = {
-    "quality": {
-        "description": "Classic quality: high ROE, profitable, large-cap, low debt",
-        "filters": {
-            "Market Cap.": "Large ($10bln to $200bln)",
-            "Return on Equity": "Over +15%",
-            "EPS growthpast 5 years": "Positive (>0%)",
-            "Current Ratio": "Over 1",
-            "Operating Margin": "Over 15%",
-        },
-    },
-    "quality_mega": {
-        "description": "Quality mega-caps: >$200B, high ROE, strong margins",
-        "filters": {
-            "Market Cap.": "Mega ($200bln and more)",
-            "Return on Equity": "Over +15%",
-            "EPS growthpast 5 years": "Positive (>0%)",
-            "Operating Margin": "Over 20%",
-        },
-    },
-    "growth_value": {
-        "description": "Growth at reasonable price: mid+ cap, growing, not expensive",
-        "filters": {
-            "Market Cap.": "+Mid (over $2bln)",
-            "Return on Equity": "Over +15%",
-            "EPS growthpast 5 years": "Over 10%",
-            "P/E": "Under 25",
-            "EPS growthnext 5 years": "Over 10%",
-        },
-    },
-    "high_roe": {
-        "description": "High ROE screener: exceptional ROE across all cap sizes",
-        "filters": {
-            "Market Cap.": "+Mid (over $2bln)",
-            "Return on Equity": "Over +30%",
-            "EPS growthpast 5 years": "Positive (>0%)",
-        },
-    },
-    "fcf_machines": {
-        "description": "Free cash flow machines: profitable, positive FCF, low debt",
-        "filters": {
-            "Market Cap.": "+Mid (over $2bln)",
-            "Return on Equity": "Over +15%",
-            "Operating Margin": "Over 20%",
-            "Current Ratio": "Over 1.5",
-            "EPS growthpast 5 years": "Positive (>0%)",
-        },
-    },
-}
+def get_existing_tickers():
+    """Return combined set of portfolio + watchlist tickers."""
+    return set(portfolio_list() + watchlist_list())
 
 
-def get_existing_tickers(ticker_file=None):
-    """Load existing tickers from file, return as a set."""
-    path = ticker_file or DEFAULT_TICKER_FILE
-    if not os.path.exists(path):
-        return set()
-    try:
-        return set(load_tickers(path))
-    except SystemExit:
-        return set()
-
-
-def scan_finviz(preset_name="quality", custom_filters=None):
-    """Query Finviz screener and return a list of ticker dicts.
-
-    Returns list of dicts with keys: Ticker, Company, Sector, Industry,
-    Market Cap, P/E, Price, etc.
-    """
-    foverview = Overview()
-
-    if custom_filters:
-        filters = custom_filters
-    elif preset_name in PRESETS:
-        filters = PRESETS[preset_name]["filters"]
-    else:
-        raise ValueError(
-            f"Unknown preset '{preset_name}'. Available: {', '.join(PRESETS)}"
-        )
-
-    foverview.set_filter(filters_dict=filters)
-    df = foverview.screener_view()
-
-    if df is None or df.empty:
-        return []
-
-    return df.to_dict("records")
-
-
-def discover_candidates(preset_name="quality", ticker_file=None, show_all=False):
-    """Discover new candidates not already in the ticker list.
+def discover_candidates(preset_name="quality", show_all=False):
+    """Discover new candidates not already in portfolio/watchlist.
 
     Returns (new_candidates, existing_matches, all_results).
     """
-    existing = get_existing_tickers(ticker_file)
+    existing = get_existing_tickers()
     results = scan_finviz(preset_name)
 
     new_candidates = []
@@ -133,7 +47,7 @@ def print_discovery_results(new_candidates, existing_matches, preset_name):
     print("=" * 80)
     print(f"\nPreset: {preset_name} — {desc}")
     print(f"Total matches from Finviz: {len(new_candidates) + len(existing_matches)}")
-    print(f"Already in tickers.txt:    {len(existing_matches)}")
+    print(f"Already tracked:           {len(existing_matches)}")
     print(f"NEW candidates:            {len(new_candidates)}")
 
     if existing_matches:

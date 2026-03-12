@@ -10,54 +10,25 @@ Usage:
 
 import sys
 import time
-import warnings
 
-from verdict.engine import compute_verdict
-from output.verdict import print_verdict, print_verdict_table
-from technical.analysis import analyze_technical
-from macro.analysis import analyze_macro
-from utils.cache import enable_cache
-from utils.lists import portfolio_list, watchlist_list
-
-warnings.filterwarnings("ignore")
-
-
-def _resolve_tickers(args):
-    """Resolve arguments to a ticker list."""
-    tickers = []
-    for arg in args:
-        low = arg.lower()
-        if low in ("--portfolio", "-p", "portfolio"):
-            tickers.extend(portfolio_list())
-        elif low in ("--watchlist", "-w", "watchlist"):
-            tickers.extend(watchlist_list())
-        elif low in ("--all", "-a"):
-            tickers.extend(portfolio_list())
-            tickers.extend(watchlist_list())
-        else:
-            tickers.append(arg.upper().strip())
-    # deduplicate preserving order
-    seen = set()
-    unique = []
-    for t in tickers:
-        t = t.upper()
-        if t not in seen:
-            seen.add(t)
-            unique.append(t)
-    return unique
-
+from analysis.verdict import compute_verdict
+from analysis.verdict import print_verdict, print_verdict_table
+from analysis.technical import analyze_technical
+from analysis.macro import analyze_macro
+from utils.config import enable_cache
+from utils.lists import resolve_tickers
 
 def _get_fundamental_scores():
     """Fetch latest fundamental scores from the database."""
     try:
-        from utils.database import get_latest_scores
+        from utils.scores_db import get_latest_scores
         return {r["symbol"]: r.get("fundamental_score") for r in get_latest_scores()}
     except Exception:
         return {}
 
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         print("Usage: python stock.py verdict AAPL [MSFT ...]")
@@ -66,7 +37,7 @@ def main():
         print("       python stock.py verdict --all")
         return
 
-    tickers = _resolve_tickers(args)
+    tickers = resolve_tickers(args)
     if not tickers:
         print("  No tickers to analyze.")
         return
@@ -106,7 +77,7 @@ def main():
         # Try to get company name
         name = None
         try:
-            from utils.database import get_latest_scores
+            from utils.scores_db import get_latest_scores
             for r in get_latest_scores():
                 if r["symbol"] == symbol:
                     name = r.get("name")
@@ -128,7 +99,6 @@ def main():
         print(f"     Run: python stock.py analyze {' '.join(missing_fundamental)}")
 
     print()
-
 
 if __name__ == "__main__":
     main()

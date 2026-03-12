@@ -4,7 +4,7 @@ import os
 import tempfile
 import pytest
 
-from utils.database import (
+from utils.scores_db import (
     save_scores,
     get_latest_scores,
     get_ticker_history,

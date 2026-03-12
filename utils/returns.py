@@ -3,30 +3,22 @@
 Uses yfinance adjusted history for accurate total return calculations.
 """
 
-import yfinance as yf
+from datasources.market import get_current_price as _fetch_price, get_price_history, get_dividends
 from datetime import date, datetime
 
 
 def _get_price(symbol):
     """Get current price for a symbol."""
-    try:
-        t = yf.Ticker(symbol)
-        info = t.info
-        return info.get("currentPrice") or info.get("regularMarketPrice")
-    except Exception:
-        return None
+    return _fetch_price(symbol)
 
 
 def _get_dividends_since(symbol, since_date):
     """Get total dividends per share paid since a date."""
     try:
-        t = yf.Ticker(symbol)
-        divs = t.dividends
-        if divs.empty:
+        divs = get_dividends(symbol)
+        if divs is None or divs.empty:
             return 0.0
-        # Filter to dividends after the buy date
         since = datetime.strptime(since_date, "%Y-%m-%d")
-        # Dividends index is timezone-aware, convert
         filtered = divs[divs.index >= since.strftime("%Y-%m-%d")]
         return float(filtered.sum())
     except Exception:
@@ -39,9 +31,8 @@ def _get_total_return(symbol, start_date):
     Returns (total_return_pct, price_only) or (None, None) on failure.
     """
     try:
-        t = yf.Ticker(symbol)
-        hist = t.history(start=start_date)
-        if hist.empty or len(hist) < 2:
+        hist = get_price_history(symbol, start=start_date)
+        if hist is None or hist.empty or len(hist) < 2:
             return None, None
 
         # yfinance .history() Close is adjusted for splits and dividends

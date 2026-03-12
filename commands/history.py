@@ -16,9 +16,8 @@ Usage:
 """
 
 import sys
-import warnings
 
-from utils.database import (
+from utils.scores_db import (
     get_scan_dates,
     get_scores_by_date,
     get_ticker_history,
@@ -36,11 +35,8 @@ from utils.formatting import (
     _data_line_color,
 )
 
-warnings.filterwarnings("ignore")
-
 HEADER = "=" * 80
 DIVIDER = "─" * 70
-
 
 def print_ticker_history(symbol, history):
     """Print score evolution for a single ticker."""
@@ -99,7 +95,6 @@ def print_ticker_history(symbol, history):
 
     print_legend()
 
-
 def print_movers(movers, top_n=20):
     """Print biggest score movers."""
     if not movers:
@@ -134,9 +129,9 @@ def print_movers(movers, top_n=20):
 
     print()
 
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         # Default: show latest scores + movers
@@ -198,7 +193,6 @@ def main():
         symbol = symbol.upper().strip()
         history = get_ticker_history(symbol)
         print_ticker_history(symbol, history)
-
 
 if __name__ == "__main__":
     main()

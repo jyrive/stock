@@ -92,13 +92,6 @@ def uv_color(undervalued):
     return bad("❌")
 
 
-def bool_color(val):
-    """Color a boolean check mark."""
-    if val:
-        return good("✅")
-    return bad("❌")
-
-
 def ratio_color(value, good_thresh, warn_thresh, fmt=".1f"):
     """Color a ratio value with custom thresholds."""
     if value is None:

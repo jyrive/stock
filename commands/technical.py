@@ -9,32 +9,14 @@ Usage:
 
 import sys
 import time
-import warnings
 
-from technical.analysis import analyze_technical
-from output.technical import print_technical, _entry_rating
-from utils.cache import enable_cache
-from utils.lists import portfolio_list, watchlist_list
+from analysis.technical import analyze_technical, print_technical, entry_rating
+from utils.config import enable_cache
+from utils.lists import resolve_tickers
 
-warnings.filterwarnings("ignore")
-
-
-def _resolve_tickers(args):
-    """Resolve arguments to a ticker list."""
-    tickers = []
-    for arg in args:
-        low = arg.lower()
-        if low == "portfolio":
-            tickers.extend(portfolio_list())
-        elif low == "watchlist":
-            tickers.extend(watchlist_list())
-        else:
-            tickers.append(arg.upper().strip())
-    return tickers
-
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         print("Usage: python stock.py technical AAPL [MSFT ...]")
@@ -42,7 +24,7 @@ def main():
         print("       python stock.py technical watchlist")
         return
 
-    tickers = _resolve_tickers(args)
+    tickers = resolve_tickers(args)
     if not tickers:
         print("  No tickers to analyze.")
         return
@@ -57,7 +39,7 @@ def main():
     # Try to get fundamental scores from database for combined rating
     fundamental_scores = {}
     try:
-        from utils.database import get_latest_scores
+        from utils.scores_db import get_latest_scores
         for row in get_latest_scores():
             fundamental_scores[row["symbol"]] = row.get("fundamental_score")
     except Exception:
@@ -97,14 +79,13 @@ def main():
             w52_str = f"{w52:.0%}" if w52 is not None else "-"
             bs_str = f"{bs:.0f}" if bs is not None else "-"
 
-            stars, label = _entry_rating(tech, bs)
+            stars, label = entry_rating(tech, bs)
             print(f"  {symbol:<8}{tech:>6}{bs_str:>6}{rsi_str:>6}{pct200_str:>8}{bb_str:>6}{w52_str:>6}  {stars} {label}")
 
         print(f"\n  Tech = Technical Score (0-100, higher = better entry)")
         print(f"  Fund = Fundamental Score | RSI = 14-day RSI")
         print(f"  vs200 = Price vs 200-day MA | BB% = Bollinger position | 52w% = 52-week position")
         print()
-
 
 if __name__ == "__main__":
     main()

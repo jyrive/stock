@@ -6,17 +6,13 @@ Usage:
 """
 
 import sys
-import warnings
 
-from macro.analysis import analyze_macro
-from output.macro import print_macro_full, print_macro_compact
-from utils.cache import enable_cache
+from analysis.macro import analyze_macro, print_macro_full, print_macro_compact
+from utils.config import enable_cache
 
-warnings.filterwarnings("ignore")
-
-
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
     compact = "--compact" in args or "-c" in args
 
     enable_cache()
@@ -29,7 +25,6 @@ def main():
         print_macro_compact(macro)
     else:
         print_macro_full(macro)
-
 
 if __name__ == "__main__":
     main()

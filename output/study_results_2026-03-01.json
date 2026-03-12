@@ -1,0 +1,375 @@
+{
+  "date": "2026-03-01",
+  "observations": 270,
+  "tickers": 15,
+  "model_r2": -0.0123,
+  "feature_importance": [
+    {
+      "feature": "macro_usd_index",
+      "importance": 0.11049,
+      "direction": "\u2212",
+      "correlation": -0.3162
+    },
+    {
+      "feature": "macro_yield_2y",
+      "importance": 0.079635,
+      "direction": "\u2212",
+      "correlation": -0.0609
+    },
+    {
+      "feature": "fund_price_to_sales",
+      "importance": 0.073068,
+      "direction": "+",
+      "correlation": 0.307
+    },
+    {
+      "feature": "fund_trailing_pe",
+      "importance": 0.063382,
+      "direction": "+",
+      "correlation": 0.2537
+    },
+    {
+      "feature": "macro_yield_spread",
+      "importance": 0.058936,
+      "direction": "+",
+      "correlation": 0.0718
+    },
+    {
+      "feature": "fund_market_cap_b",
+      "importance": 0.058245,
+      "direction": "+",
+      "correlation": 0.3108
+    },
+    {
+      "feature": "tech_price_vs_sma200_pct",
+      "importance": 0.055805,
+      "direction": "+",
+      "correlation": 0.0108
+    },
+    {
+      "feature": "macro_gold_vs_200ma",
+      "importance": 0.045432,
+      "direction": "+",
+      "correlation": 0.2026
+    },
+    {
+      "feature": "tech_bb_position",
+      "importance": 0.045289,
+      "direction": "\u2212",
+      "correlation": -0.0172
+    },
+    {
+      "feature": "fund_revenue_growth_pct",
+      "importance": 0.044664,
+      "direction": "+",
+      "correlation": 0.1725
+    },
+    {
+      "feature": "tech_volatility_20d",
+      "importance": 0.035241,
+      "direction": "+",
+      "correlation": 0.1635
+    },
+    {
+      "feature": "fund_earnings_growth_pct",
+      "importance": 0.035065,
+      "direction": "+",
+      "correlation": 0.3371
+    },
+    {
+      "feature": "fund_fcf_yield_pct",
+      "importance": 0.030838,
+      "direction": "\u2212",
+      "correlation": -0.2586
+    },
+    {
+      "feature": "fund_debt_to_equity",
+      "importance": 0.028727,
+      "direction": "+",
+      "correlation": 0.3011
+    },
+    {
+      "feature": "tech_week52_position",
+      "importance": 0.027238,
+      "direction": "\u2212",
+      "correlation": -0.0405
+    },
+    {
+      "feature": "fund_forward_pe",
+      "importance": 0.023648,
+      "direction": "+",
+      "correlation": 0.0996
+    },
+    {
+      "feature": "tech_price_vs_sma50_pct",
+      "importance": 0.021196,
+      "direction": "\u2212",
+      "correlation": -0.0036
+    },
+    {
+      "feature": "tech_macd_histogram",
+      "importance": 0.019251,
+      "direction": "+",
+      "correlation": 0.0488
+    },
+    {
+      "feature": "tech_momentum_3m",
+      "importance": 0.016015,
+      "direction": "+",
+      "correlation": 0.0188
+    },
+    {
+      "feature": "tech_rsi_14",
+      "importance": 0.015792,
+      "direction": "\u2212",
+      "correlation": -0.0155
+    },
+    {
+      "feature": "fund_current_ratio",
+      "importance": 0.015784,
+      "direction": "+",
+      "correlation": 0.0613
+    },
+    {
+      "feature": "macro_yield_10y",
+      "importance": 0.014635,
+      "direction": "\u2212",
+      "correlation": -0.0083
+    },
+    {
+      "feature": "macro_vix",
+      "importance": 0.013422,
+      "direction": "+",
+      "correlation": 0.1234
+    },
+    {
+      "feature": "tech_momentum_1m",
+      "importance": 0.013153,
+      "direction": "+",
+      "correlation": 0.0234
+    },
+    {
+      "feature": "macro_sp500_52w_pos",
+      "importance": 0.009337,
+      "direction": "\u2212",
+      "correlation": -0.1
+    },
+    {
+      "feature": "macro_oil_vs_200ma",
+      "importance": 0.008591,
+      "direction": "+",
+      "correlation": 0.0285
+    },
+    {
+      "feature": "fund_profit_margin_pct",
+      "importance": 0.008206,
+      "direction": "+",
+      "correlation": 0.1275
+    },
+    {
+      "feature": "macro_sp500_vs_200ma_pct",
+      "importance": 0.006446,
+      "direction": "\u2212",
+      "correlation": -0.1259
+    },
+    {
+      "feature": "fund_payout_ratio_pct",
+      "importance": 0.00532,
+      "direction": "+",
+      "correlation": 0.0522
+    },
+    {
+      "feature": "fund_price_to_book",
+      "importance": 0.004915,
+      "direction": "\u2212",
+      "correlation": -0.0291
+    },
+    {
+      "feature": "macro_breadth_pct",
+      "importance": 0.004333,
+      "direction": "+",
+      "correlation": 0.0846
+    },
+    {
+      "feature": "fund_roe_pct",
+      "importance": 0.004168,
+      "direction": "+",
+      "correlation": 0.0455
+    },
+    {
+      "feature": "fund_dividend_yield_pct",
+      "importance": 0.002539,
+      "direction": "\u2212",
+      "correlation": -0.0611
+    },
+    {
+      "feature": "fund_beta",
+      "importance": 0.001193,
+      "direction": "+",
+      "correlation": 0.1504
+    },
+    {
+      "feature": "fund_pit",
+      "importance": 0.0,
+      "direction": "\u2212",
+      "correlation": NaN
+    }
+  ],
+  "layer_interaction": {
+    "fwd_return_1m": {
+      "Fund": {
+        "Q1_bottom": null,
+        "Q5_top": null,
+        "spread": null
+      },
+      "Tech": {
+        "Q1_bottom": 0.96,
+        "Q5_top": 2.34,
+        "spread": 1.37
+      },
+      "Macro": {
+        "Q1_bottom": 1.44,
+        "Q5_top": 1.36,
+        "spread": -0.08
+      },
+      "combinations": {
+        "All 3 layers favorable": {
+          "mean_return": 0.71,
+          "median_return": -0.24,
+          "count": 47,
+          "positive_pct": 48.9
+        },
+        "Fund+Tech (macro weak)": {
+          "mean_return": 2.89,
+          "median_return": 1.04,
+          "count": 34,
+          "positive_pct": 55.9
+        },
+        "Fund only (tech+macro weak)": {
+          "mean_return": 1.47,
+          "median_return": 1.18,
+          "count": 65,
+          "positive_pct": 58.5
+        },
+        "Tech only (fund+macro weak)": {
+          "mean_return": 2.03,
+          "median_return": 0.42,
+          "count": 24,
+          "positive_pct": 54.2
+        },
+        "No layers favorable": {
+          "mean_return": -6.52,
+          "median_return": -2.93,
+          "count": 12,
+          "positive_pct": 33.3
+        }
+      }
+    },
+    "fwd_return_3m": {
+      "Fund": {
+        "Q1_bottom": null,
+        "Q5_top": null,
+        "spread": null
+      },
+      "Tech": {
+        "Q1_bottom": 4.43,
+        "Q5_top": 7.1,
+        "spread": 2.67
+      },
+      "Macro": {
+        "Q1_bottom": 4.26,
+        "Q5_top": 5.94,
+        "spread": 1.69
+      },
+      "combinations": {
+        "All 3 layers favorable": {
+          "mean_return": 8.32,
+          "median_return": 1.28,
+          "count": 47,
+          "positive_pct": 53.2
+        },
+        "Fund+Tech (macro weak)": {
+          "mean_return": 5.97,
+          "median_return": 6.64,
+          "count": 34,
+          "positive_pct": 67.6
+        },
+        "Fund only (tech+macro weak)": {
+          "mean_return": 4.25,
+          "median_return": 2.35,
+          "count": 65,
+          "positive_pct": 55.4
+        },
+        "Tech only (fund+macro weak)": {
+          "mean_return": 2.71,
+          "median_return": 2.36,
+          "count": 24,
+          "positive_pct": 62.5
+        },
+        "No layers favorable": {
+          "mean_return": -13.67,
+          "median_return": -17.3,
+          "count": 12,
+          "positive_pct": 25.0
+        }
+      }
+    },
+    "fwd_return_6m": {
+      "Fund": {
+        "Q1_bottom": null,
+        "Q5_top": null,
+        "spread": null
+      },
+      "Tech": {
+        "Q1_bottom": 3.71,
+        "Q5_top": 13.38,
+        "spread": 9.67
+      },
+      "Macro": {
+        "Q1_bottom": 9.11,
+        "Q5_top": 22.03,
+        "spread": 12.92
+      },
+      "combinations": {
+        "All 3 layers favorable": {
+          "mean_return": 22.19,
+          "median_return": 19.23,
+          "count": 47,
+          "positive_pct": 68.1
+        },
+        "Fund+Tech (macro weak)": {
+          "mean_return": 11.25,
+          "median_return": 7.28,
+          "count": 34,
+          "positive_pct": 67.6
+        },
+        "Fund only (tech+macro weak)": {
+          "mean_return": 8.68,
+          "median_return": 5.72,
+          "count": 65,
+          "positive_pct": 70.8
+        },
+        "Tech only (fund+macro weak)": {
+          "mean_return": 2.49,
+          "median_return": 1.89,
+          "count": 24,
+          "positive_pct": 54.2
+        },
+        "No layers favorable": {
+          "mean_return": -22.83,
+          "median_return": -19.41,
+          "count": 12,
+          "positive_pct": 8.3
+        }
+      }
+    }
+  },
+  "weight_optimization": {
+    "best_weights": [
+      0.5,
+      0.2,
+      0.3
+    ],
+    "best_correlation": 0.1636
+  }
+}

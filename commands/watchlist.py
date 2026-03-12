@@ -33,7 +33,7 @@ def _analyze_watchlist(extra_flags=None):
     analyze_main()
 
     # Show which ones are undervalued (buying opportunities)
-    from utils.database import get_latest_scores
+    from utils.scores_db import get_latest_scores
     latest = get_latest_scores()
     w_set = set(t.upper() for t in tickers)
 
@@ -59,8 +59,9 @@ def _analyze_watchlist(extra_flags=None):
         print("\n  No undervalued stocks on your watchlist right now.\n")
 
 
-def main():
-    args = sys.argv[1:]
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
 
     if not args:
         _analyze_watchlist()

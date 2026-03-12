@@ -18,6 +18,10 @@ Usage:
     python stock.py discover [--analyze]       Find new investment ideas (Finviz)
     python stock.py compare <A> <B>            Side-by-side comparison
 
+    python stock.py autotrade                  Auto-trade using verdict signals
+    python stock.py backtest [TICKERS] --period 2y  Historical strategy backtest
+    python stock.py strategy                   Strategy reports & rule analysis
+
     python stock.py daily                      Quick morning check (~30s)
     python stock.py weekly                     Portfolio + watchlist review (~2min)
     python stock.py monthly                    Full review + discover (~5min)
@@ -102,6 +106,23 @@ Commands:
   compare AAPL,MSFT GOOGL,META  Compare two ticker groups
   compare portfolio other.txt   Compare vs external file
 
+  ── Simulation / Auto-Trading ─────────────────────────
+  autotrade                      Run auto-trade cycle on watchlist
+  autotrade status               Show sim portfolio status
+  autotrade history              Show sim transaction history
+  autotrade reset                Reset sim portfolio
+
+  backtest AAPL MSFT --period 2y Historical backtest with verdict rules
+  backtest --watchlist --period 1y  Backtest your watchlist
+  backtest --runs                List saved backtest runs
+  backtest --show <ID>           Show backtest details
+
+  strategy                       Strategy dashboard overview
+  strategy report [ID]           Detailed performance report
+  strategy rules                 Rule effectiveness analysis
+  strategy journal [ID]          Trade journal with reasoning
+  strategy compare               Compare simulation runs
+
   ── Workflows ─────────────────────────────────────────
   daily                          Quick morning check (~30s)
                                  Portfolio summary + alerts (compact)
@@ -114,6 +135,16 @@ Commands:
                                  Discover + full portfolio analysis
                                  + watchlist + compare + CSV export
 
+  ── Data & ML ─────────────────────────────────────────
+  collect [tickers]              Collect data for continuous learning
+  collect --backfill             Backfill 5y prices + quarterly data
+  collect --macro                Refresh macro indicators only
+  collect --stats                Show data coverage report
+
+  study                          ML parameter correlation study
+  study --quick                  Quick mode (15 tickers)
+  study --tickers 50             Larger universe
+
   ── Recommended Frequency ─────────────────────────────
   daily        → every 1–2 days  (your money, compact)
   weekly       → weekly          (entry points)
@@ -125,7 +156,7 @@ Examples:
   python stock.py weekly                       # weekly review
   python stock.py monthly                      # full monthly review
   python stock.py analyze AAPL MSFT GOOGL
-  python stock.py analyze                      # uses tickers.txt
+  python stock.py analyze                      # uses portfolio + watchlist
   python stock.py analyze AAPL --summary       # compact summary only
   python stock.py screen high_roe
   python stock.py history AAPL
@@ -140,193 +171,104 @@ Examples:
   python stock.py verdict AAPL                     # triangulated verdict
   python stock.py verdict --portfolio              # portfolio verdicts
   python stock.py alerts
+  python stock.py autotrade                        # auto-trade cycle
+  python stock.py autotrade status                 # sim portfolio status
+  python stock.py backtest --watchlist --period 2y  # 2-year backtest
+  python stock.py backtest AAPL MSFT --period 1y   # backtest specific stocks
+  python stock.py strategy                         # strategy dashboard
+  python stock.py strategy rules                   # which rules work?
 """)
 
 
-def cmd_analyze(args):
-    """Run fundamental analysis."""
-    # Reuse analyze.py logic by importing its main
-    sys.argv = ["analyze.py"] + args
-    from commands.analyze import main
-    main()
+# ── Command dispatch ─────────────────────────────────────────────────
 
-
-def cmd_screen(args):
-    """Run Finviz discovery."""
-    sys.argv = ["screen.py"] + args
-    from commands.screen import main
-    main()
-
-
-def cmd_history(args):
-    """Browse score history."""
-    sys.argv = ["history.py"] + args
-    from commands.history import main
-    main()
-
-
-def cmd_deepdive(args):
-    """Run deep-dive guide."""
-    if not args:
-        print("Usage: python stock.py deepdive TICKER")
-        print("Example: python stock.py deepdive AAPL")
-        return
-    sys.argv = ["deepdive.py"] + args
-    from commands.deepdive import main
-    main()
-
-
-def cmd_chart(args):
-    """Generate score trend chart."""
-    if not args:
-        print("Usage: python stock.py chart TICKER [TICKER...]")
-        print("Example: python stock.py chart AAPL MSFT")
-        return
-
-    from utils.chart import chart_from_db
-    symbols = [s.upper().strip() for s in args]
-    chart_from_db(symbols)
-
-
-def cmd_cache(args):
-    """Manage API cache."""
-    from utils.cache import clear_cache, cache_stats
-
-    if not args or args[0] == "stats":
-        cache_stats()
-    elif args[0] == "clear":
-        clear_cache()
-    else:
-        print(f"Unknown cache command: {args[0]}")
-        print("Usage: python stock.py cache [clear|stats]")
-
-
-def cmd_alerts(args):
-    """Run price target alerts."""
-    sys.argv = ["alerts.py"] + args
-    from commands.alerts import main
-    main()
-
-
-def cmd_portfolio(args):
-    """Manage and analyze portfolio."""
-    sys.argv = ["portfolio.py"] + args
-    from commands.portfolio import main
-    main()
-
-
-def cmd_watchlist(args):
-    """Manage and analyze watchlist."""
-    sys.argv = ["watchlist.py"] + args
-    from commands.watchlist import main
-    main()
-
-
-def cmd_discover(args):
-    """Find new investment ideas via Finviz."""
-    sys.argv = ["discover.py"] + args
-    from commands.discover import main
-    main()
-
-
-def cmd_compare(args):
-    """Side-by-side comparison."""
-    sys.argv = ["compare.py"] + args
-    from commands.compare import main
-    main()
-
-
-def cmd_technical(args):
-    """Technical entry-timing analysis."""
-    sys.argv = ["technical.py"] + args
-    from commands.technical import main
-    main()
-
-
-def cmd_macro(args):
-    """Global macro environment dashboard."""
-    sys.argv = ["macro.py"] + args
-    from commands.macro import main
-    main()
-
-
-def cmd_verdict(args):
-    """Triangulated verdict — Fund + Tech + Macro convergence."""
-    sys.argv = ["verdict.py"] + args
-    from commands.verdict import main
-    main()
-
-
-def cmd_daily(args):
-    """Daily portfolio check."""
-    from commands.workflow import daily
-    daily()
-
-
-def cmd_weekly(args):
-    """Weekly review."""
-    from commands.workflow import weekly
-    weekly()
-
-
-def cmd_monthly(args):
-    """Monthly full review."""
-    from commands.workflow import monthly
-    monthly()
-
-
-def cmd_config(args):
-    """Manage configuration."""
-    from utils.config import save_default_config, load_config, CONFIG_PATH
-
-    if not args or args[0] == "show":
-        cfg = load_config()
-        import json
-        print(json.dumps(cfg, indent=2))
-    elif args[0] == "init":
-        save_default_config()
-    elif args[0] == "path":
-        print(CONFIG_PATH)
-    else:
-        print(f"Unknown config command: {args[0]}")
-        print("Usage: python stock.py config [show|init|path]")
-
-
-COMMANDS = {
-    "analyze": cmd_analyze,
-    "screen": cmd_screen,
-    "history": cmd_history,
-    "deepdive": cmd_deepdive,
-    "chart": cmd_chart,
-    "cache": cmd_cache,
-    "config": cmd_config,
-    "alerts": cmd_alerts,
-    "portfolio": cmd_portfolio,
-    "watchlist": cmd_watchlist,
-    "discover": cmd_discover,
-    "compare": cmd_compare,
-    "technical": cmd_technical,
-    "macro": cmd_macro,
-    "verdict": cmd_verdict,
-    "daily": cmd_daily,
-    "weekly": cmd_weekly,
-    "monthly": cmd_monthly,
+# Standard commands: call module.main(args)
+_CMD_MODULES = {
+    "analyze": "commands.analyze",
+    "screen": "commands.discover",
+    "history": "commands.history",
+    "deepdive": "commands.deepdive",
+    "alerts": "commands.alerts",
+    "portfolio": "commands.portfolio",
+    "watchlist": "commands.watchlist",
+    "discover": "commands.discover",
+    "compare": "commands.compare",
+    "technical": "commands.technical",
+    "macro": "commands.macro",
+    "verdict": "commands.verdict",
+    "autotrade": "commands.autotrade",
+    "backtest": "commands.backtest",
+    "study": "commands.study",
+    "collect": "commands.collect",
+    "report": "commands.report",
+    "strategy": "commands.strategy",
 }
 
-# Aliases
-COMMANDS["a"] = cmd_analyze
-COMMANDS["s"] = cmd_screen
-COMMANDS["h"] = cmd_history
-COMMANDS["d"] = cmd_deepdive
-COMMANDS["c"] = cmd_chart
-COMMANDS["p"] = cmd_portfolio
-COMMANDS["t"] = cmd_technical
-COMMANDS["m"] = cmd_macro
-COMMANDS["v"] = cmd_verdict
-COMMANDS["w"] = cmd_watchlist
+# Single-letter aliases
+_ALIASES = {
+    "a": "analyze", "s": "screen", "h": "history", "d": "deepdive",
+    "c": "chart", "p": "portfolio", "t": "technical", "m": "macro",
+    "v": "verdict", "w": "watchlist",
+}
+
+
+def _run_command(command, args):
+    """Dispatch a command: lazy-import its module and call main(args)."""
+    from importlib import import_module
+
+    command = _ALIASES.get(command, command)
+
+    # Standard commands: import module, call main(args)
+    if command in _CMD_MODULES:
+        import_module(_CMD_MODULES[command]).main(args)
+        return True
+
+    # Workflow shortcuts (no args — call function directly)
+    if command in ("daily", "weekly", "monthly"):
+        getattr(import_module("commands.workflow"), command)()
+        return True
+
+    # Chart (inline — no commands/ module)
+    if command == "chart":
+        if not args:
+            print("Usage: python stock.py chart TICKER [TICKER...]")
+            return True
+        from utils.chart import chart_from_db
+        chart_from_db([s.upper().strip() for s in args])
+        return True
+
+    # Cache management (inline)
+    if command == "cache":
+        from utils.config import clear_cache, cache_stats
+        if not args or args[0] == "stats":
+            cache_stats()
+        elif args[0] == "clear":
+            clear_cache()
+        else:
+            print(f"Unknown cache command: {args[0]}")
+        return True
+
+    # Config management (inline)
+    if command == "config":
+        from utils.config import save_default_config, load_config, CONFIG_PATH
+        if not args or args[0] == "show":
+            import json
+            print(json.dumps(load_config(), indent=2))
+        elif args[0] == "init":
+            save_default_config()
+        elif args[0] == "path":
+            print(CONFIG_PATH)
+        else:
+            print(f"Unknown config command: {args[0]}")
+        return True
+
+    return False
 
 
 def main():
+    import warnings
+    warnings.filterwarnings("ignore")
+
     args = sys.argv[1:]
 
     if not args or args[0] in ("--help", "-h", "help"):
@@ -336,16 +278,17 @@ def main():
     command = args[0].lower()
     rest = args[1:]
 
-    if command in COMMANDS:
-        COMMANDS[command](rest)
+    if _run_command(command, rest):
+        return
+
+    # If args look like tickers (all caps, short), assume 'analyze'
+    if all(len(a) <= 6 and a.replace("-", "").isalpha() for a in args):
+        _run_command("analyze", args)
     else:
-        # If args look like tickers (all caps, short), assume 'analyze'
-        if all(len(a) <= 6 and a.replace("-", "").isalpha() for a in args):
-            cmd_analyze(args)
-        else:
-            print(f"Unknown command: '{command}'")
-            print(f"Available: {', '.join(k for k in COMMANDS if len(k) > 1)}")
-            print("Run 'python stock.py --help' for full usage.")
+        all_cmds = sorted(set(list(_CMD_MODULES) + ["chart", "cache", "config", "daily", "weekly", "monthly"]))
+        print(f"Unknown command: '{command}'")
+        print(f"Available: {', '.join(all_cmds)}")
+        print("Run 'python stock.py --help' for full usage.")
 
 
 if __name__ == "__main__":

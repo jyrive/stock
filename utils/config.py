@@ -98,6 +98,18 @@ DEFAULTS = {
         "margin_of_safety_min": 0,     # MoS% above this triggers an undervalued alert.  Range: -20 – 30
         "score_drop_threshold": 10,    # Fundamental score drop ≥ this triggers an alert.    Range: 5 – 30
     },
+
+    # ── Simulation / auto-trading settings ───────────────────────
+    # Controls the paper-trading simulator and backtester.
+    "simulation": {
+        "starting_cash": 100000,       # Virtual starting capital ($).                   Range: 10000 – 10000000
+        "max_position_pct": 0.10,      # Max portfolio weight per stock (fraction).       Range: 0.03 – 0.25
+        "max_positions": 20,           # Max simultaneous holdings.                       Range: 5 – 50
+        "commission": 0.0,             # Per-trade commission ($).                        Range: 0.0 – 20.0
+        "stop_loss_pct": 0.20,         # Sell if position drops this much.                Range: 0.05 – 0.50 (0 = disabled)
+        "take_profit_pct": 0.0,        # Sell if position gains this much.                Range: 0.0 – 2.0  (0 = disabled)
+        "benchmarks": ["SPY", "QQQ", "VT"],  # Benchmark symbols for comparison.
+    },
 }
 
 
@@ -185,3 +197,69 @@ def config():
     if _config is None:
         _config = load_config()
     return _config
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  API request caching (merged from cache.py)
+# ═══════════════════════════════════════════════════════════════════════
+
+CACHE_DIR = os.path.join(_PROJECT_ROOT, ".cache")
+CACHE_PATH = os.path.join(CACHE_DIR, "yfinance_cache")
+
+_cache_enabled = False
+
+
+def enable_cache(expire_hours=4):
+    """Install requests-cache as a transparent session cache.
+
+    All yfinance HTTP requests will be cached for `expire_hours` hours.
+    Safe to call multiple times — only installs once.
+    """
+    global _cache_enabled
+    if _cache_enabled:
+        return
+
+    try:
+        import requests_cache
+    except ImportError:
+        print("  [cache] requests-cache not installed — caching disabled")
+        print("  Install with: pip install requests-cache")
+        return
+
+    os.makedirs(CACHE_DIR, exist_ok=True)
+
+    requests_cache.install_cache(
+        CACHE_PATH,
+        backend="sqlite",
+        expire_after=expire_hours * 3600,
+        allowable_methods=("GET", "POST"),
+        stale_if_error=True,
+    )
+    _cache_enabled = True
+
+
+def clear_cache():
+    """Remove all cached responses."""
+    try:
+        import requests_cache
+        requests_cache.clear()
+        print("  Cache cleared.")
+    except ImportError:
+        pass
+
+    for ext in (".sqlite", ".sqlite-journal"):
+        path = CACHE_PATH + ext
+        if os.path.exists(path):
+            os.remove(path)
+            print(f"  Removed {path}")
+
+
+def cache_stats():
+    """Print cache statistics."""
+    for ext in (".sqlite",):
+        path = CACHE_PATH + ext
+        if os.path.exists(path):
+            size_mb = os.path.getsize(path) / (1024 * 1024)
+            print(f"  Cache: {path} ({size_mb:.1f} MB)")
+            return
+    print("  No cache file found.")

@@ -4,7 +4,7 @@ import os
 import tempfile
 import pytest
 
-from utils.database import save_scores
+from utils.scores_db import save_scores
 
 
 def _sample_result(symbol="AAPL", score=75.0, mos=10.0, iv=200.0, price=180.0):

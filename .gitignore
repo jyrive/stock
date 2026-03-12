@@ -17,6 +17,9 @@ scores.db
 .cache/
 charts/
 
+# Secrets
+.env
+
 # OS
 .DS_Store
 Thumbs.db

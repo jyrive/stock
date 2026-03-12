@@ -2,7 +2,6 @@
 
 ```
 stock.py                       # Unified CLI entry point
-tickers.txt                    # Your tracked ticker list
 config.yaml                    # User config (created with `config init`)
 scores.db                      # SQLite database (auto-created)
 

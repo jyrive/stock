@@ -13,7 +13,7 @@ Usage:
 import sys
 import warnings
 
-from fundamental import (
+from analysis.fundamental import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,
@@ -22,12 +22,9 @@ from fundamental import (
     calculate_dcf_intrinsic_value,
     analyze_revenue_growth,
 )
-from utils.data import get_financial_data
-from utils.database import save_scores
-from utils.cache import enable_cache
-from utils.config import get_weights
-
-warnings.filterwarnings("ignore")
+from utils.lists import get_financial_data
+from utils.scores_db import save_scores
+from utils.config import enable_cache, get_weights
 
 # ── Symbols ──────────────────────────────────────────────────────────
 OK = "✅"
@@ -36,7 +33,6 @@ FAIL = "❌"
 ARROW = "→"
 BULLET = "•"
 LINE = "─" * 72
-
 
 def _run_analysis(ticker):
     """Run full analysis on one ticker, return result dict."""
@@ -84,44 +80,43 @@ def _run_analysis(ticker):
         "_raw_data": data,  # Keep raw data for peer comparison
     }
 
-
 def _section(title):
     print(f"\n{LINE}")
     print(f"  {title}")
     print(LINE)
 
-
 def _check(status, text):
     print(f"  {status}  {text}")
-
 
 def _action(text):
     print(f"       {ARROW} {text}")
 
-
 def _todo(text):
     print(f"     {BULLET} {text}")
 
-
 def print_deep_dive(r):
     """Print the full deep-dive manual checklist."""
-    sym = r["symbol"]
-    name = r["name"]
-    sector = r["sector"]
-    industry = r["industry"]
-    score = r["fundamental_score"]
-    price = r["current_price"]
-    pe = r["trailing_pe"]
-    mcap = r["market_cap_b"]
+    _print_header(r)
+    _print_business_understanding(r)
+    _print_moat(r)
+    _print_earnings(r)
+    _print_balance_sheet(r)
+    _print_cash_flow(r)
+    _print_dividends(r)
+    _print_valuation(r)
+    _print_management(r)
+    _print_risks(r)
+    _print_decision_checklist()
+    _print_research_links(r)
 
-    eps = r["eps_analysis"]
-    roe = r["roe_analysis"]
-    fcf = r["fcf_analysis"]
-    bal = r["balance_analysis"]
-    div = r["dividend_analysis"]
-    dcf = r["dcf_analysis"]
+# ── Section printers ─────────────────────────────────────────────────
 
-    # ── Header ───────────────────────────────────────────────────
+def _print_header(r):
+    sym, name = r["symbol"], r["name"]
+    sector, industry = r["sector"], r["industry"]
+    score, price = r["fundamental_score"], r["current_price"]
+    pe, mcap = r["trailing_pe"], r["market_cap_b"]
+
     print(f"\n{'=' * 72}")
     print(f"  DEEP DIVE GUIDE: {sym} — {name}")
     print(f"  Sector: {sector} | Industry: {industry}")
@@ -130,7 +125,9 @@ def print_deep_dive(r):
           f"Market Cap: ${mcap}B | Fundamental Score: {score}/100")
     print(f"{'=' * 72}")
 
-    # ── 1. Do You Understand This Business? ──────────────────────
+def _print_business_understanding(r):
+    name = r["name"]
+    industry = r["industry"]
     _section("1. DO YOU UNDERSTAND THIS BUSINESS?")
     print()
     print(f"  This tool CANNOT answer this — only you can.")
@@ -140,10 +137,12 @@ def print_deep_dive(r):
     _todo(f"  what this company looks like in 10 years?")
     _todo(f"If you can't answer YES to both, stop here. Move on.")
 
-    # ── 2. Competitive Advantage (Moat) ──────────────────────────
-    _section("2. COMPETITIVE ADVANTAGE (MOAT)")
+def _print_moat(r):
+    roe = r["roe_analysis"]
+    name = r["name"]
     roe_val = roe.get("roe")
-    de_val = roe.get("debt_to_equity")
+
+    _section("2. COMPETITIVE ADVANTAGE (MOAT)")
 
     if roe_val and roe_val > 20:
         _check(OK, f"ROE is {roe_val:.1f}% — high returns suggest a moat exists")
@@ -164,12 +163,16 @@ def print_deep_dive(r):
     print(f"       - Patents/regulation (e.g. pharma, utilities)")
     _todo("If you cannot name a specific moat source, be cautious.")
 
-    # ── 3. Earnings Quality ──────────────────────────────────────
-    _section("3. EARNINGS QUALITY")
+def _print_earnings(r):
+    eps = r["eps_analysis"]
     eps_score = eps["eps_score"]
     eps_cagr = eps.get("eps_growth_rate")
     eps_consistent = eps.get("eps_consistent")
     eps_values = eps.get("eps_values", [])
+    sym = r["symbol"]
+    name = r["name"]
+
+    _section("3. EARNINGS QUALITY")
 
     if eps_score >= 70:
         _check(OK, f"EPS Score: {eps_score}/100 — strong earnings growth")
@@ -222,14 +225,19 @@ def print_deep_dive(r):
             elif rev_cagr > eps_cagr:
                 _check(WARN, f"Revenue ({rev_cagr:.0f}%) outpacing EPS ({eps_cagr:.0f}%) — margin pressure?")
 
-    # ── 4. Balance Sheet Strength ────────────────────────────────
-    _section("4. BALANCE SHEET STRENGTH")
+def _print_balance_sheet(r):
+    bal = r["balance_analysis"]
     bal_score = bal.get("balance_score", 0)
     cr = bal.get("current_ratio")
     cd = bal.get("cash_to_debt")
     re_growing = bal.get("retained_earnings_growing")
     gw = bal.get("goodwill_pct")
     re_values = bal.get("retained_earnings_values", [])
+    name = r["name"]
+    sym = r["symbol"]
+    industry = r["industry"]
+
+    _section("4. BALANCE SHEET STRENGTH")
 
     if bal_score >= 70:
         _check(OK, f"Balance Sheet Score: {bal_score}/100 — fortress balance sheet")
@@ -303,13 +311,16 @@ def print_deep_dive(r):
     _todo("  Look at accounts receivable — growing faster than revenue = collection issues")
     _todo("  Check off-balance-sheet items (operating leases, guarantees)")
 
-    # ── 5. Cash Flow ─────────────────────────────────────────────
-    _section("5. FREE CASH FLOW")
+def _print_cash_flow(r):
+    fcf = r["fcf_analysis"]
     fcf_score = fcf["fcf_score"]
     fcf_current = fcf.get("fcf_current")
     fcf_yield = fcf.get("fcf_yield")
     fcf_growing = fcf.get("fcf_growing")
     fcf_values = fcf.get("fcf_values", [])
+    name = r["name"]
+
+    _section("5. FREE CASH FLOW")
 
     if fcf_score >= 70:
         _check(OK, f"FCF Score: {fcf_score}/100 — strong cash generation")
@@ -333,15 +344,17 @@ def print_deep_dive(r):
     _todo("  Buybacks? Dividends? Acquisitions? Debt repayment?")
     _todo("  Prefer companies that reinvest at high returns")
 
-    # ── 5b. Dividends ────────────────────────────────────────────
-    _section("5b. DIVIDEND QUALITY")
+def _print_dividends(r):
+    div = r["dividend_analysis"]
+    sym = r["symbol"]
     div_score = div.get("dividend_score", 0)
     pays_div = div.get("pays_dividend", False)
     dy = div.get("dividend_yield_pct", 0)
     po = div.get("payout_ratio_pct")
     ci = div.get("consecutive_increases", 0)
-    div_growing = div.get("dividend_growing", False)
     div_values = div.get("dividend_values", [])
+
+    _section("5b. DIVIDEND QUALITY")
 
     if not pays_div:
         _check(WARN, "This company does NOT pay a dividend")
@@ -385,11 +398,16 @@ def print_deep_dive(r):
     _todo("Has management committed to a dividend policy?")
     _todo("Is the dividend funded by FCF (good) or debt (bad)?")
 
-    # ── 6. Valuation ─────────────────────────────────────────────
-    _section("6. VALUATION")
+def _print_valuation(r):
+    dcf = r["dcf_analysis"]
+    price = r["current_price"]
+    pe = r["trailing_pe"]
+    name, sym = r["name"], r["symbol"]
     iv = dcf.get("intrinsic_value")
     mos = dcf.get("margin_of_safety")
     uv = dcf.get("undervalued")
+
+    _section("6. VALUATION")
 
     if iv:
         if uv:
@@ -424,7 +442,8 @@ def print_deep_dive(r):
             buy_price = iv * 0.85
             _todo(f"  For 15% margin: target buy price ≈ ${buy_price:.2f}")
 
-    # ── 7. Management ────────────────────────────────────────────
+def _print_management(r):
+    name = r["name"]
     _section("7. MANAGEMENT QUALITY")
     print()
     print("  This tool has NO data on management. You MUST check this yourself.")
@@ -439,7 +458,18 @@ def print_deep_dive(r):
     _todo("Are executive compensation packages aligned with shareholders?")
     _todo("Is there a founder/owner-operator still involved?")
 
-    # ── 8. Risks ─────────────────────────────────────────────────
+def _print_risks(r):
+    sym, name = r["symbol"], r["name"]
+    industry = r["industry"]
+    roe = r["roe_analysis"]
+    bal = r["balance_analysis"]
+    eps = r["eps_analysis"]
+    pe = r["trailing_pe"]
+    de_val = roe.get("debt_to_equity")
+    cr = bal.get("current_ratio")
+    gw = bal.get("goodwill_pct")
+    eps_consistent = eps.get("eps_consistent")
+
     _section("8. RISKS TO INVESTIGATE")
     print()
     print("  Every company has risks. You need to find them BEFORE buying.")
@@ -471,7 +501,7 @@ def print_deep_dive(r):
     if not warnings_found:
         print(f"  No major red flags detected in the numbers — but read the 10-K!")
 
-    # ── 9. Summary Verdict ───────────────────────────────────────
+def _print_decision_checklist():
     _section("9. YOUR DECISION CHECKLIST")
     print()
     print("  Before buying, you should be able to answer YES to ALL of these:")
@@ -495,7 +525,10 @@ def print_deep_dive(r):
     print(f"  If you can't check ALL boxes, this does not pass all fundamental checks.")
     print()
 
-    # ── 10. Where to Research ────────────────────────────────────
+def _print_research_links(r):
+    sym = r["symbol"]
+    industry = r["industry"]
+
     _section("10. WHERE TO DO THIS RESEARCH")
     print()
 
@@ -518,9 +551,10 @@ def print_deep_dive(r):
     _todo(f"News:             {ybase}/news/")
     print()
 
-
-def main():
-    if len(sys.argv) < 2:
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+    if not args:
         print("Usage: python stock.py deepdive TICKER")
         print()
         print("Example: python stock.py deepdive AAPL")
@@ -529,7 +563,7 @@ def main():
         print("you need to research manually before buying.")
         sys.exit(1)
 
-    ticker = sys.argv[1].upper().strip()
+    ticker = args[0].upper().strip()
 
     enable_cache()
 
@@ -552,7 +586,6 @@ def main():
     saved = save_scores([result])
     print(f"  Score saved to scores.db ({saved} stock, Fundamental Score: {result['fundamental_score']})")
     print()
-
 
 if __name__ == "__main__":
     main()

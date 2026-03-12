@@ -9,7 +9,7 @@ Scans scores.db for:
 import sys
 from datetime import date, timedelta
 
-from utils.database import get_latest_scores, get_ticker_history
+from utils.scores_db import get_latest_scores, get_ticker_history
 from utils.config import config
 from utils.colors import USE_COLOR, good, warn, bad, dim, BOLD, RESET
 
@@ -197,7 +197,7 @@ def print_alerts(alerts):
     print()
 
 
-def main():
+def main(args=None):
     """Entry point for the alerts command."""
     alerts = scan_alerts()
     print_alerts(alerts)

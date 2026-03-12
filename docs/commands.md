@@ -34,7 +34,7 @@ python stock.py AAPL MSFT GOOGL      # same as: python stock.py analyze AAPL MSF
 
 ## 1. Screen — Find Candidates
 
-Scan Finviz for stocks matching quality filters. Shows candidates **not already in your `tickers.txt`**:
+Scan Finviz for stocks matching quality filters. Shows candidates **not already in your portfolio or watchlist**:
 
 ```bash
 python stock.py screen                # default "quality" preset
@@ -180,7 +180,7 @@ Verdicts are integrated into all three workflow commands (daily one-liner, weekl
 Run full fundamental analysis on specific tickers. Each stock gets scored on EPS, ROE, FCF, balance sheet, dividends, and DCF:
 
 ```bash
-python stock.py analyze               # analyze tickers from tickers.txt
+python stock.py analyze               # analyze portfolio + watchlist
 python stock.py analyze AAPL MSFT GOOGL  # analyze specific tickers
 python stock.py analyze my_watchlist.txt  # analyze tickers from a custom file
 python stock.py analyze AAPL --csv       # analyze and export results to CSV
@@ -481,17 +481,18 @@ For more control, run the individual steps:
 
 ## Ticker Management
 
-The tool uses three ticker files, all in the project root:
+The tool uses two ticker files in the project root, both auto-created on first use:
 
 | File | Purpose | Managed by |
 |------|---------|------------|
-| `tickers.txt` | Master list for `analyze` (default) | Edit manually |
 | `portfolio.txt` | Stocks you **OWN** | `portfolio add/remove/buy/sell` |
 | `watchlist.txt` | Stocks you're **WATCHING** | `watchlist add/remove` |
 
-`portfolio.txt` and `watchlist.txt` are auto-created on first use. The `buy` command moves a stock from watchlist → portfolio; `sell` moves it the other way (keeps watching).
+The `buy` command moves a stock from watchlist → portfolio; `sell` moves it the other way (keeps watching).
 
-Edit `tickers.txt` — one ticker per line. Use `#` for comments and blank lines to organize by sector:
+Running `analyze` with no arguments analyzes the combined portfolio + watchlist.
+
+Format: one ticker per line. Use `#` for comments and blank lines to organize by sector:
 
 ```
 # Technology

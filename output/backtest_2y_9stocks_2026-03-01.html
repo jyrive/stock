@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backtest Report — 2y</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #f8fafc; color: #1e293b; line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: white; padding: 2.5rem 2rem; border-radius: 16px;
+    margin-bottom: 2rem;
+  }
+  .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .header .subtitle { opacity: 0.85; font-size: 0.95rem; }
+  .header .period { opacity: 0.7; font-size: 0.85rem; margin-top: 0.5rem; }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .kpi {
+    background: white; padding: 1.25rem 1.5rem; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .kpi .label { font-size: 0.8rem; color: #64748b; text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+  .kpi .value { font-size: 1.6rem; font-weight: 700; }
+  .kpi .sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.15rem; }
+
+  .section {
+    background: white; border-radius: 12px; padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .section h2 {
+    font-size: 1.1rem; font-weight: 600; color: #334155;
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .strategy-note {
+    background: #eff6ff; border-left: 4px solid #2563eb;
+    padding: 1rem 1.25rem; border-radius: 0 8px 8px 0;
+    margin-bottom: 1.5rem; font-size: 0.9rem; color: #1e40af;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 2px solid #e2e8f0;
+    color: #64748b; font-weight: 600; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #f1f5f9; }
+  tr:hover td { background: #f8fafc; }
+
+  .monthly-table { font-size: 0.82rem; }
+  .monthly-table th { padding: 0.4rem 0.5rem; text-align: center; }
+  .monthly-table td { padding: 0.4rem 0.5rem; border-radius: 4px; }
+  .monthly-table .year-label { font-weight: 700; text-align: center;
+    background: #f1f5f9 !important; }
+
+  .params-table td { padding: 0.4rem 0.8rem; }
+  .params-table td:first-child { color: #64748b; }
+
+  .portfolio-row td { background: #eff6ff !important; }
+
+  .trades-table .buy td:nth-child(2) { color: #16a34a; font-weight: 600; }
+  .trades-table .sell td:nth-child(2) { color: #dc2626; font-weight: 600; }
+  .trades-table .reason { font-size: 0.8rem; color: #64748b; max-width: 200px; }
+
+  .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+  .footer {
+    text-align: center; color: #94a3b8; font-size: 0.78rem;
+    margin-top: 2rem; padding: 1rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Backtest Report — 2y</h1>
+    <div class="subtitle">Long-term investor strategy · 9 stocks</div>
+    <div class="period">2024-03-01 → 2026-03-01 · Generated 2026-03-01 12:59</div>
+  </div>
+
+  <div class='strategy-note'><strong>Long-term investor strategy with realistic friction:</strong> Buy when fundamentals ≥ 45, sell only when fundamentals < 30 or stop-loss triggers. Technical analysis adjusts entry sizing (30% influence). Macro environment drives allocation (50% influence). <br><strong>Costs modeled:</strong> 0.10% spread per trade, 25.5% dividend withholding tax, 30.0% capital gains tax on realized profits.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">Total Return</div>
+      <div class="value" style="color:#16a34a">+52.7%</div>
+      <div class="sub">+23.6% annualized</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Final Value</div>
+      <div class="value">€129,377</div>
+      <div class="sub">$152,704 USD</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Max Drawdown</div>
+      <div class="value" style="color:#dc2626">-7.9%</div>
+      <div class="sub">Peak to trough</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Sharpe Ratio</div>
+      <div class="value">1.87</div>
+      <div class="sub">Risk-adjusted return</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Total Dividends</div>
+      <div class="value">€760</div>
+      <div class="sub">35 trades · —</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Starting Capital</div>
+      <div class="value">€100,000</div>
+      <div class="sub">Gain: €+29,377</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Friction Costs</div>
+      <div class="value" style="color:#dc2626">€316</div>
+      <div class="sub">0.3% of capital</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📈 Equity Curve (indexed to 100)</h2>
+    <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;height:auto;font-family:system-ui,sans-serif;">
+<rect width="900" height="340" fill="#fafafa" rx="8"/>
+<line x1="70" y1="30" x2="780" y2="30" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="34" text-anchor="end" fill="#6b7280" font-size="11">150</text>
+<line x1="70" y1="84" x2="780" y2="84" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="88" text-anchor="end" fill="#6b7280" font-size="11">137</text>
+<line x1="70" y1="138" x2="780" y2="138" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="142" text-anchor="end" fill="#6b7280" font-size="11">125</text>
+<line x1="70" y1="192" x2="780" y2="192" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="196" text-anchor="end" fill="#6b7280" font-size="11">113</text>
+<line x1="70" y1="246" x2="780" y2="246" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="250" text-anchor="end" fill="#6b7280" font-size="11">101</text>
+<line x1="70" y1="300" x2="780" y2="300" stroke="#e5e7eb" stroke-width="1"/>
+<text x="62" y="304" text-anchor="end" fill="#6b7280" font-size="11">89</text>
+<text x="70" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2024-03</text>
+<text x="185" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2024-06</text>
+<text x="300" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2024-10</text>
+<text x="415" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2025-02</text>
+<text x="530" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2025-06</text>
+<text x="645" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2025-10</text>
+<text x="760" y="320" text-anchor="middle" fill="#6b7280" font-size="11">2026-02</text>
+<polyline points="70.0,249.3 76.8,254.1 83.5,248.9 90.3,242.9 97.0,239.0 103.8,238.4 110.6,233.5 117.3,235.7 124.1,234.1 130.9,236.2 137.6,234.4 144.4,236.3 151.1,233.9 157.9,235.5 164.7,238.5 171.4,232.2 178.2,227.1 185.0,225.6 191.7,223.9 198.5,223.7 205.2,224.0 212.0,222.5 218.8,223.6 225.5,228.7 232.3,225.2 239.0,231.8 245.8,229.8 252.6,240.4 259.3,230.3 266.1,225.9 272.9,224.6 279.6,218.3 286.4,212.4 293.1,195.3 299.9,204.0 306.7,199.4 313.4,180.7 320.2,177.7 327.0,168.0 333.7,170.8 340.5,173.6 347.2,165.7 354.0,169.5 360.8,172.9 367.5,166.2 374.3,167.5 381.0,157.6 387.8,162.4 394.6,159.5 401.3,163.8 408.1,166.1 414.9,172.3 421.6,168.1 428.4,189.2 435.1,200.6 441.9,195.6 448.7,195.3 455.4,230.0 462.2,215.1 469.0,222.8 475.7,211.0 482.5,195.4 489.2,194.5 496.0,169.3 502.8,181.9 509.5,180.9 516.3,176.2 523.0,189.3 529.8,193.7 536.6,187.7 543.3,175.6 550.1,175.0 556.9,170.3 563.6,167.4 570.4,172.8 577.1,164.4 583.9,159.9 590.7,151.2 597.4,150.0 604.2,141.0 611.0,135.1 617.7,124.1 624.5,125.5 631.2,125.5 638.0,135.7 644.8,128.7 651.5,122.0 658.3,125.8 665.0,123.1 671.8,122.8 678.6,118.8 685.3,98.3 692.1,98.2 698.9,101.1 705.6,94.0 712.4,87.6 719.1,97.2 725.9,78.1 732.7,67.6 739.4,74.2 746.2,95.7 753.0,69.6 759.7,86.7 766.5,77.2 773.2,73.4 780.0,73.4" fill="none" stroke="#2563eb" stroke-width="2.5" opacity="1" />
+<line x1="790" y1="45" x2="810" y2="45" stroke="#2563eb" stroke-width="2" />
+<text x="815" y="49" fill="#374151" font-size="12">Portfolio</text>
+<text x="815" y="62" fill="#6b7280" font-size="10">+39.8%</text>
+<polyline points="70.0,249.3 76.8,250.3 83.5,250.5 90.3,240.7 97.0,240.7 103.8,243.1 110.6,249.7 117.3,263.2 124.1,251.9 130.9,249.3 137.6,241.0 144.4,233.6 151.1,233.6 157.9,235.4 164.7,229.7 171.4,222.1 178.2,219.1 185.0,219.3 191.7,210.3 198.5,205.7 205.2,215.2 212.0,219.1 218.8,229.1 225.5,229.1 232.3,210.6 239.0,203.8 245.8,202.5 252.6,222.7 259.3,203.9 266.1,197.0 272.9,194.2 279.6,192.9 286.4,187.2 293.1,182.8 299.9,187.6 306.7,194.6 313.4,171.0 320.2,181.8 327.0,173.3 333.7,167.2 340.5,162.6 347.2,165.7 354.0,175.4 360.8,172.0 367.5,174.7 374.3,184.7 381.0,169.8 387.8,160.7 394.6,166.1 401.3,167.0 408.1,159.2 414.9,167.7 421.6,172.7 428.4,188.6 435.1,200.1 441.9,197.6 448.7,204.9 455.4,248.9 462.2,223.9 469.0,223.9 475.7,209.2 482.5,195.1 489.2,197.3 496.0,171.2 502.8,184.3 509.5,175.4 516.3,166.8 523.0,168.7 529.8,169.5 536.6,151.5 543.3,151.5 550.1,143.8 556.9,140.3 563.6,132.0 570.4,145.5 577.1,131.9 583.9,126.4 590.7,124.8 597.4,125.0 604.2,123.1 611.0,114.2 617.7,107.0 624.5,108.7 631.2,102.2 638.0,116.4 644.8,106.4 651.5,95.1 658.3,90.9 665.0,100.6 671.8,99.8 678.6,111.2 685.3,89.7 692.1,87.7 698.9,91.2 705.6,90.4 712.4,81.8 719.1,88.1 725.9,78.5 732.7,80.7 739.4,82.8 746.2,80.4 753.0,81.6 759.7,89.4 766.5,82.6 773.2,85.7 780.0,85.7" fill="none" stroke="#dc2626" stroke-width="1.5" opacity="0.6" stroke-dasharray="6,3"/>
+<line x1="790" y1="80" x2="810" y2="80" stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+<text x="815" y="84" fill="#374151" font-size="12">SPY</text>
+<text x="815" y="97" fill="#6b7280" font-size="10">+37.1%</text>
+<polyline points="70.0,249.3 76.8,255.8 83.5,260.9 90.3,248.0 97.0,248.0 103.8,253.8 110.6,256.0 117.3,279.4 124.1,263.2 130.9,258.8 137.6,252.2 144.4,242.6 151.1,236.5 157.9,243.7 164.7,231.5 171.4,215.4 178.2,214.4 185.0,214.7 191.7,197.8 198.5,199.1 205.2,218.6 212.0,230.8 218.8,244.9 225.5,243.2 232.3,218.8 239.0,213.8 245.8,217.6 252.6,245.0 259.3,218.5 266.1,211.4 272.9,206.5 279.6,205.9 286.4,199.9 293.1,198.8 299.9,197.9 306.7,205.8 313.4,179.2 320.2,196.7 327.0,187.5 333.7,183.6 340.5,166.9 347.2,162.9 354.0,174.7 360.8,170.0 367.5,174.0 374.3,185.3 381.0,170.8 387.8,162.9 394.6,170.3 401.3,169.6 408.1,154.4 414.9,166.5 421.6,184.3 428.4,200.7 435.1,212.7 441.9,211.6 448.7,222.7 455.4,268.9 462.2,237.2 469.0,237.2 475.7,219.1 482.5,202.9 489.2,203.7 496.0,170.3 502.8,182.5 509.5,172.7 516.3,161.9 523.0,164.8 529.8,164.9 536.6,143.1 543.3,143.1 550.1,137.0 556.9,130.0 563.6,124.8 570.4,137.3 577.1,116.7 583.9,113.9 590.7,119.3 597.4,120.8 604.2,115.2 611.0,104.6 617.7,91.9 624.5,94.6 631.2,87.4 638.0,101.1 644.8,86.6 651.5,73.4 658.3,61.5 665.0,80.8 671.8,81.7 678.6,100.5 685.3,71.3 692.1,65.1 698.9,76.9 705.6,73.5 712.4,65.8 719.1,76.6 725.9,63.1 732.7,68.5 739.4,67.0 746.2,67.9 753.0,80.1 759.7,87.9 766.5,80.9 773.2,82.5 780.0,82.5" fill="none" stroke="#16a34a" stroke-width="1.5" opacity="0.6" stroke-dasharray="6,3"/>
+<line x1="790" y1="115" x2="810" y2="115" stroke="#16a34a" stroke-width="2" stroke-dasharray="6,3"/>
+<text x="815" y="119" fill="#374151" font-size="12">QQQ</text>
+<text x="815" y="132" fill="#6b7280" font-size="10">+37.8%</text>
+<polyline points="70.0,249.3 76.8,247.5 83.5,248.9 90.3,241.3 97.0,241.3 103.8,242.9 110.6,251.1 117.3,262.0 124.1,250.6 130.9,246.2 137.6,238.9 144.4,231.2 151.1,233.2 157.9,235.4 164.7,233.1 171.4,231.4 178.2,229.0 185.0,228.2 191.7,219.6 198.5,212.6 205.2,222.3 212.0,224.5 218.8,236.1 225.5,234.8 232.3,217.8 239.0,208.6 245.8,208.0 252.6,227.4 259.3,211.7 266.1,204.8 272.9,197.8 279.6,198.2 286.4,195.8 293.1,193.8 299.9,201.4 306.7,206.2 313.4,190.4 320.2,202.3 327.0,193.8 333.7,188.2 340.5,183.5 347.2,187.9 354.0,200.3 360.8,197.0 367.5,198.9 374.3,208.4 381.0,194.6 387.8,184.6 394.6,188.0 401.3,187.1 408.1,178.0 414.9,184.6 421.6,190.1 428.4,195.2 435.1,203.0 441.9,200.9 448.7,208.3 455.4,250.4 462.2,227.9 469.0,227.9 475.7,208.4 482.5,194.8 489.2,195.9 496.0,175.8 502.8,182.9 509.5,176.8 516.3,168.2 523.0,170.2 529.8,172.8 536.6,155.0 543.3,155.0 550.1,149.8 556.9,147.1 563.6,138.3 570.4,153.3 577.1,139.0 583.9,132.5 590.7,128.0 597.4,130.8 604.2,128.3 611.0,119.0 617.7,113.3 624.5,115.9 631.2,106.6 638.0,123.0 644.8,110.8 651.5,101.5 658.3,100.2 665.0,107.6 671.8,105.9 678.6,118.9 685.3,99.0 692.1,96.1 698.9,97.6 705.6,95.9 712.4,87.4 719.1,89.1 725.9,78.6 732.7,77.1 739.4,76.0 746.2,74.9 753.0,70.6 759.7,71.1 766.5,64.3 773.2,64.8 780.0,64.8" fill="none" stroke="#9333ea" stroke-width="1.5" opacity="0.6" stroke-dasharray="6,3"/>
+<line x1="790" y1="150" x2="810" y2="150" stroke="#9333ea" stroke-width="2" stroke-dasharray="6,3"/>
+<text x="815" y="154" fill="#374151" font-size="12">VT</text>
+<text x="815" y="167" fill="#6b7280" font-size="10">+41.8%</text>
+</svg>
+  </div>
+
+  <div class="section">
+    <h2>📅 Monthly Returns</h2>
+    
+    <table class="monthly-table">
+        <tr><th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Year Total</th></tr><tr><td class='year-label'>2024</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.2%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+0.5%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+0.7%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+1.0%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.0%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+0.5%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.0%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+1.1%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+4.2%</td><td style="background:#fef2f2;color:#1f2937;text-align:center">-1.7%</td><td style="background:#bbf7d0;font-weight:600;text-align:center">+12.6%</td></tr><tr><td class='year-label'>2025</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.3%</td><td style="background:#fef2f2;color:#1f2937;text-align:center">-1.6%</td><td style="background:#fef2f2;color:#1f2937;text-align:center">-1.5%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+1.9%</td><td style="background:#bbf7d0;color:#1f2937;text-align:center">+6.3%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+1.4%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+4.6%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.7%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+4.4%</td><td style="background:#fef2f2;color:#1f2937;text-align:center">-0.8%</td><td style="background:#bbf7d0;color:#1f2937;text-align:center">+5.1%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+3.5%</td><td style="background:#bbf7d0;font-weight:600;text-align:center">+28.2%</td></tr><tr><td class='year-label'>2026</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">+0.2%</td><td style="background:#dcfce7;color:#1f2937;text-align:center">+2.3%</td><td style="background:#f0fdf4;color:#1f2937;text-align:center">-0.0%</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#f9fafb;color:#d1d5db;text-align:center">—</td><td style="background:#dcfce7;font-weight:600;text-align:center">+2.5%</td></tr>
+    </table>
+    
+  </div>
+
+  <div class="two-col">
+    <div class="section">
+      <h2>📊 Yearly Summary</h2>
+      <table class="data-table"><tr><th>Year</th><th>Return</th><th>End Value (EUR)</th><th>End Value (USD)</th><th>Dividends (EUR)</th></tr><tr><td>2024</td><td style="color:#16a34a;font-weight:600">+13.2%</td><td>€108,521</td><td>$113,114</td><td>€0</td></tr><tr><td>2025</td><td style="color:#16a34a;font-weight:600">+31.7%</td><td>€126,404</td><td>$148,972</td><td>€0</td></tr><tr><td>2026</td><td style="color:#16a34a;font-weight:600">+2.5%</td><td>€129,377</td><td>$152,704</td><td>€760</td></tr></table>
+    </div>
+    <div class="section">
+      <h2>⚙️ Parameters</h2>
+      <table class="params-table"><tr><td>Starting Capital</td><td><strong>€100,000</strong></td></tr><tr><td>Fund. Buy Threshold</td><td><strong>≥ 45</strong></td></tr><tr><td>Fund. Sell Threshold</td><td><strong>< 30</strong></td></tr><tr><td>Max Position Size</td><td><strong>10%</strong></td></tr><tr><td>Max Holdings</td><td><strong>20</strong></td></tr><tr><td>Stop-Loss</td><td><strong>20%</strong></td></tr><tr><td>Technical Influence</td><td><strong>30%</strong></td></tr><tr><td>Macro Influence</td><td><strong>50%</strong></td></tr><tr><td>Eval Frequency</td><td><strong>weekly</strong></td></tr><tr><td>Spread / Slippage</td><td><strong>0.10%</strong></td></tr><tr><td>Dividend Tax</td><td><strong>25.5%</strong></td></tr><tr><td>Capital Gains Tax</td><td><strong>30.0%</strong></td></tr><tr><td>Commission</td><td><strong>None</strong></td></tr></table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🏁 Benchmark Comparison</h2>
+    <table class="data-table"><tr><th></th><th>Total Return</th><th>Annualized</th><th>Max Drawdown</th><th>Alpha</th></tr><tr class="portfolio-row"><td><strong>📊 Portfolio</strong></td><td style="color:#16a34a;font-weight:700">+52.7%</td><td>—</td><td>—</td><td>—</td></tr><tr><td>SPY</td><td style="color:#16a34a">+37.1%</td><tr><td>QQQ</td><td style="color:#16a34a">+37.8%</td><tr><td>VT</td><td style="color:#16a34a">+41.8%</td></table>
+  </div>
+
+  <div class="section">
+    <h2>💰 Cost of Active Investing</h2>
+    <p style="color:#64748b;font-size:0.88rem;margin-bottom:1rem">
+      These are the friction costs deducted during the simulation.
+      A cheap accumulating index ETF (e.g. VWCE) has none of these costs —
+      dividends are reinvested tax-free, no spread on rebalancing, no capital gains until you sell.
+    </p>
+    <table class="data-table"><tr><th>Cost Type</th><th>Amount (USD)</th><th>Notes</th></tr><tr><td>Spread / Slippage</td><td>$66</td><td>Bid-ask spread on each buy &amp; sell</td></tr><tr><td>Dividend Withholding Tax</td><td>$307</td><td>Tax withheld on dividend payments</td></tr><tr style="font-weight:700;border-top:2px solid #334155"><td>Total Friction</td><td>$373</td><td>≈ €316</td></tr></table>
+  </div>
+
+  <div class="section">
+    <h2>💼 Final Holdings</h2>
+    <table class="data-table"><tr><th>Symbol</th><th>Shares</th><th>Avg Cost</th><th>Current</th><th>Value (€)</th><th>P&L</th><th>Weight</th></tr><tr><td><strong>AAPL</strong></td><td>41</td><td>$180.36</td><td>$264.18</td><td>€9,177</td><td style="color:#16a34a;font-weight:600">+46.5%</td><td>7.1%</td></tr><tr><td><strong>ALSN</strong></td><td>92</td><td>$77.46</td><td>$125.30</td><td>€9,767</td><td style="color:#16a34a;font-weight:600">+61.8%</td><td>7.5%</td></tr><tr><td><strong>CSL</strong></td><td>24</td><td>$340.49</td><td>$394.77</td><td>€8,027</td><td style="color:#16a34a;font-weight:600">+15.9%</td><td>6.2%</td></tr><tr><td><strong>EVR</strong></td><td>48</td><td>$178.19</td><td>$308.84</td><td>€12,560</td><td style="color:#16a34a;font-weight:600">+73.3%</td><td>9.7%</td></tr><tr><td><strong>EXEL</strong></td><td>243</td><td>$22.03</td><td>$44.06</td><td>€9,071</td><td style="color:#16a34a;font-weight:600">+100.0%</td><td>7.0%</td></tr><tr><td><strong>GFI</strong></td><td>458</td><td>$13.25</td><td>$58.84</td><td>€22,832</td><td style="color:#16a34a;font-weight:600">+344.2%</td><td>17.6%</td></tr><tr><td><strong>GOOGL</strong></td><td>54</td><td>$140.31</td><td>$311.76</td><td>€14,263</td><td style="color:#16a34a;font-weight:600">+122.2%</td><td>11.0%</td></tr><tr><td><strong>MSFT</strong></td><td>21</td><td>$393.75</td><td>$392.74</td><td>€6,988</td><td style="color:#dc2626;font-weight:600">-0.3%</td><td>5.4%</td></tr><tr><td><strong>V</strong></td><td>26</td><td>$284.62</td><td>$320.14</td><td>€7,052</td><td style="color:#16a34a;font-weight:600">+12.5%</td><td>5.5%</td></tr></table>
+  </div>
+
+  <div class="section">
+    <h2>📝 Trade Journal</h2>
+    <table class="data-table trades-table"><tr><th>Date</th><th>Action</th><th>Symbol</th><th>Shares</th><th>Price ($)</th><th>Value ($)</th><th>Value (€)</th><th>Reason</th></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>AAPL</strong></td><td>26</td><td>$178.22</td><td>$4,634</td><td>€4,288</td><td class='reason'>Fund 51≥45 · Tech 66→1.05x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>MSFT</strong></td><td>10</td><td>$409.63</td><td>$4,096</td><td>€3,791</td><td class='reason'>Fund 55≥45 · Tech 12→0.91x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>GOOGL</strong></td><td>33</td><td>$136.25</td><td>$4,496</td><td>€4,161</td><td class='reason'>Fund 55≥45 · Tech 53→1.01x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>V</strong></td><td>14</td><td>$279.25</td><td>$3,910</td><td>€3,618</td><td class='reason'>Fund 55≥45 · Tech 8→0.91x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>EXEL</strong></td><td>186</td><td>$22.26</td><td>$4,141</td><td>€3,832</td><td class='reason'>Fund 78≥45 · Tech 24→0.92x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>ALSN</strong></td><td>55</td><td>$73.98</td><td>$4,069</td><td>€3,766</td><td class='reason'>Fund 68≥45 · Tech 12→0.91x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>GFI</strong></td><td>320</td><td>$13.24</td><td>$4,237</td><td>€3,921</td><td class='reason'>Fund 65≥45 · Tech 31→0.94x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>EVR</strong></td><td>22</td><td>$181.94</td><td>$4,003</td><td>€3,705</td><td class='reason'>Fund 55≥45 · Tech 16→0.91x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-01</td><td>🟢 BUY</td><td><strong>CSL</strong></td><td>12</td><td>$340.20</td><td>$4,082</td><td>€3,778</td><td class='reason'>Fund 53≥45 · Tech 16→0.91x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-08</td><td>🟢 BUY</td><td><strong>AAPL</strong></td><td>3</td><td>$169.36</td><td>$508</td><td>€464</td><td class='reason'>Fund 51≥45 · Tech 85→1.09x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-03-29</td><td>🟢 BUY</td><td><strong>V</strong></td><td>2</td><td>$275.23</td><td>$550</td><td>€510</td><td class='reason'>Fund 55≥45 · Tech 37→0.96x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-04-19</td><td>🟢 BUY</td><td><strong>MSFT</strong></td><td>1</td><td>$393.48</td><td>$393</td><td>€370</td><td class='reason'>Fund 55≥45 · Tech 51→1.00x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-04-26</td><td>🟢 BUY</td><td><strong>ALSN</strong></td><td>8</td><td>$73.09</td><td>$585</td><td>€545</td><td class='reason'>Fund 68≥45 · Tech 51→1.00x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-04-26</td><td>🟢 BUY</td><td><strong>EVR</strong></td><td>2</td><td>$179.99</td><td>$360</td><td>€336</td><td class='reason'>Fund 55≥45 · Tech 40→0.97x · Macro 26→0.75x</td></tr><tr class="buy"><td>2024-05-03</td><td>🟢 BUY</td><td><strong>EXEL</strong></td><td>30</td><td>$21.92</td><td>$658</td><td>€613</td><td class='reason'>Fund 78≥45 · Tech 60→1.03x · Macro 29→0.75x</td></tr><tr class="buy"><td>2024-05-24</td><td>🟢 BUY</td><td><strong>EXEL</strong></td><td>27</td><td>$20.59</td><td>$556</td><td>€514</td><td class='reason'>Fund 78≥45 · Tech 75→1.07x · Macro 29→0.75x</td></tr><tr class="buy"><td>2024-06-14</td><td>🟢 BUY</td><td><strong>GFI</strong></td><td>59</td><td>$13.15</td><td>$776</td><td>€722</td><td class='reason'>Fund 65≥45 · Tech 74→1.07x · Macro 21→0.75x</td></tr><tr class="buy"><td>2024-06-28</td><td>🟢 BUY</td><td><strong>V</strong></td><td>2</td><td>$259.33</td><td>$519</td><td>€484</td><td class='reason'>Fund 55≥45 · Tech 63→1.04x · Macro 21→0.75x</td></tr><tr class="buy"><td>2024-08-02</td><td>🟢 BUY</td><td><strong>MSFT</strong></td><td>3</td><td>$403.44</td><td>$1,210</td><td>€1,122</td><td class='reason'>Fund 55≥45 · Tech 62→1.04x · Macro 42→0.88x</td></tr><tr class="buy"><td>2024-08-02</td><td>🟢 BUY</td><td><strong>V</strong></td><td>2</td><td>$263.39</td><td>$527</td><td>€488</td><td class='reason'>Fund 55≥45 · Tech 39→0.97x · Macro 42→0.88x</td></tr><tr class="buy"><td>2024-08-02</td><td>🟢 BUY</td><td><strong>CSL</strong></td><td>2</td><td>$390.18</td><td>$780</td><td>€723</td><td class='reason'>Fund 53≥45 · Tech 46→0.99x · Macro 42→0.88x</td></tr><tr class="buy"><td>2024-08-30</td><td>🟢 BUY</td><td><strong>GFI</strong></td><td>79</td><td>$13.34</td><td>$1,054</td><td>€951</td><td class='reason'>Fund 65≥45 · Tech 79→1.09x · Macro 42→0.88x</td></tr><tr class="buy"><td>2024-09-06</td><td>🟢 BUY</td><td><strong>GOOGL</strong></td><td>6</td><td>$150.11</td><td>$901</td><td>€811</td><td class='reason'>Fund 55≥45 · Tech 73→1.07x · Macro 42→0.88x</td></tr><tr class="buy"><td>2025-02-07</td><td>🟢 BUY</td><td><strong>CSL</strong></td><td>2</td><td>$345.88</td><td>$692</td><td>€666</td><td class='reason'>Fund 53≥45 · Tech 89→1.09x · Macro 29→0.75x</td></tr><tr class="buy"><td>2025-03-07</td><td>🟢 BUY</td><td><strong>MSFT</strong></td><td>2</td><td>$390.71</td><td>$781</td><td>€724</td><td class='reason'>Fund 55≥45 · Tech 76→1.08x · Macro 49→0.88x</td></tr><tr class="buy"><td>2025-03-07</td><td>🟢 BUY</td><td><strong>EVR</strong></td><td>7</td><td>$204.60</td><td>$1,432</td><td>€1,328</td><td class='reason'>Fund 55≥45 · Tech 90→1.09x · Macro 49→0.88x</td></tr><tr class="buy"><td>2025-03-07</td><td>🟢 BUY</td><td><strong>CSL</strong></td><td>3</td><td>$332.61</td><td>$998</td><td>€925</td><td class='reason'>Fund 53≥45 · Tech 81→1.09x · Macro 49→0.88x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>AAPL</strong></td><td>12</td><td>$187.75</td><td>$2,253</td><td>€2,040</td><td class='reason'>Fund 51≥45 · Tech 88→1.09x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>MSFT</strong></td><td>5</td><td>$357.46</td><td>$1,787</td><td>€1,618</td><td class='reason'>Fund 55≥45 · Tech 90→1.09x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>GOOGL</strong></td><td>15</td><td>$145.34</td><td>$2,180</td><td>€1,974</td><td class='reason'>Fund 55≥45 · Tech 90→1.09x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>V</strong></td><td>3</td><td>$311.11</td><td>$933</td><td>€845</td><td class='reason'>Fund 55≥45 · Tech 55→1.02x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>ALSN</strong></td><td>29</td><td>$85.26</td><td>$2,473</td><td>€2,239</td><td class='reason'>Fund 68≥45 · Tech 87→1.09x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>EVR</strong></td><td>17</td><td>$162.26</td><td>$2,758</td><td>€2,498</td><td class='reason'>Fund 55≥45 · Tech 85→1.09x · Macro 81→1.12x</td></tr><tr class="buy"><td>2025-04-04</td><td>🟢 BUY</td><td><strong>CSL</strong></td><td>5</td><td>$323.86</td><td>$1,619</td><td>€1,466</td><td class='reason'>Fund 53≥45 · Tech 78→1.08x · Macro 81→1.12x</td></tr><tr class="buy"><td>2026-03-01</td><td>🟢 BUY</td><td><strong>V</strong></td><td>3</td><td>$320.46</td><td>$961</td><td>€815</td><td class='reason'>Fund 55≥45 · Tech 70→1.06x · Macro 39→0.88x</td></tr></table>
+  </div>
+
+  <div class="footer">
+    Stock Screener · Backtest Report · 2026-03-01 12:59<br>
+    Past performance does not guarantee future results. Fundamental scores use current data (look-ahead bias).
+  </div>
+
+</div>
+</body>
+</html>

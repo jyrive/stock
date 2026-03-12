@@ -1,10 +1,12 @@
-"""Ticker list management: portfolio.txt and watchlist.txt add/remove/list.
+"""Ticker list management and data fetching.
 
-Both files live in the project root alongside tickers.txt.  Format is the
-same: one ticker per line, # comments allowed, blank lines ignored.
+Portfolio/watchlist files live in the project root.  Format: one ticker
+per line, # comments allowed, blank lines ignored.  Files are
+auto-created on first use.
 """
 
 import os
+import sys
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORTFOLIO_PATH = os.path.join(_PROJECT_ROOT, "portfolio.txt")
@@ -112,6 +114,63 @@ def watchlist_remove(symbols):
     return removed
 
 
+# ── Ticker resolution ────────────────────────────────────────────────
+
+
+def resolve_tickers(args, *, with_remaining=False, default_all=False):
+    """Resolve CLI arguments to a deduplicated ticker list.
+
+    Recognises ``--portfolio``/``-p``/``portfolio``,
+    ``--watchlist``/``-w``/``watchlist``, ``--all``/``-a``,
+    ``--tickers``/``-t TICK …``, and bare ``TICK`` arguments.
+
+    Returns a deduplicated ``list[str]`` (order-preserved).
+    If *with_remaining* is True, returns ``(tickers, remaining)``
+    where *remaining* holds unrecognised ``--flag`` arguments.
+    If *default_all* is True and no tickers are found, falls back to
+    the combined watchlist + portfolio.
+    """
+    tickers: list[str] = []
+    remaining: list[str] = []
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        low = arg.lower()
+
+        if low in ("--portfolio", "-p", "portfolio"):
+            tickers.extend(portfolio_list())
+        elif low in ("--watchlist", "-w", "watchlist"):
+            tickers.extend(watchlist_list())
+        elif low in ("--all", "-a"):
+            tickers.extend(portfolio_list())
+            tickers.extend(watchlist_list())
+        elif low in ("--tickers", "-t"):
+            i += 1
+            while i < len(args) and not args[i].startswith("-"):
+                tickers.append(args[i].upper())
+                i += 1
+            continue
+        elif not arg.startswith("-"):
+            tickers.append(arg.upper().strip())
+        else:
+            remaining.append(args[i])
+        i += 1
+
+    if default_all and not tickers:
+        tickers = watchlist_list() + portfolio_list()
+
+    # Deduplicate preserving order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for t in tickers:
+        if t not in seen:
+            seen.add(t)
+            unique.append(t)
+
+    return (unique, remaining) if with_remaining else unique
+
+
 # ── Cross-list helpers ───────────────────────────────────────────────
 
 
@@ -127,3 +186,52 @@ def move_to_watchlist(symbols):
     removed = portfolio_remove(symbols)
     added = watchlist_add(symbols)
     return added
+
+
+# ── File loading ─────────────────────────────────────────────────────
+
+
+def load_tickers(filepath):
+    """Load tickers from a text file. One ticker per line, # for comments."""
+    if not os.path.exists(filepath):
+        print(f"Error: Ticker file not found: {filepath}")
+        print("Create a file with one ticker per line. Lines starting with # are comments.")
+        sys.exit(1)
+
+    tickers = []
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            for t in line.split(","):
+                t = t.strip().upper()
+                if t:
+                    tickers.append(t)
+
+    if not tickers:
+        print(f"Error: No tickers found in {filepath}")
+        sys.exit(1)
+
+    return tickers
+
+
+# ── Data fetching ────────────────────────────────────────────────────
+
+
+def get_financial_data(ticker_symbol, snapshot=True, mode=None):
+    """Fetch comprehensive financial data for a company.
+
+    Uses the provider dispatch layer which handles caching automatically:
+      - mode="auto" (default): use DB cache if fresh, else fetch live
+      - mode="live":           always fetch from remote provider
+      - mode="cache":          DB only, no network
+
+    When snapshot=True (default) and mode is not "cache", the provider
+    also persists fundamentals and quarterly financials to the datastore.
+    """
+    from datasources.provider import get_fundamentals
+
+    # In live/auto mode, the provider.get_fundamentals already caches
+    data = get_fundamentals(ticker_symbol, mode=mode)
+    return data

@@ -1,6 +1,6 @@
 """Peer comparison: fetch same-sector peers and display side-by-side table."""
 
-import yfinance as yf
+from datasources.market import get_info
 
 
 # Fallback peers per sector when yfinance doesn't return enough
@@ -61,8 +61,7 @@ def fetch_peer_metrics(symbols):
     results = []
     for sym in symbols:
         try:
-            ticker = yf.Ticker(sym)
-            info = ticker.info
+            info = get_info(sym)
             if not info or "marketCap" not in info:
                 continue
 

@@ -77,7 +77,7 @@ def plot_score_history(histories, output_path=None):
 
 def chart_from_db(symbols):
     """Convenience: load history from DB and plot."""
-    from utils.database import get_ticker_history
+    from utils.scores_db import get_ticker_history
 
     histories = {}
     for sym in symbols:

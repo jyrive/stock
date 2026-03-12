@@ -6,16 +6,15 @@ Deep-scores stocks on EPS growth, ROE, FCF, and DCF intrinsic value.
 Saves results to scores.db for historical tracking.
 
 Usage:
-    python stock.py analyze              # analyze tickers from tickers.txt
+    python stock.py analyze              # analyze portfolio + watchlist
     python stock.py analyze AAPL MSFT    # analyze specific tickers
     python stock.py analyze picks.txt    # analyze tickers from a custom file
 """
 
 import sys
 import time
-import warnings
 
-from fundamental import (
+from analysis.fundamental import (
     analyze_eps_growth,
     analyze_roe,
     analyze_free_cash_flow,
@@ -24,15 +23,12 @@ from fundamental import (
     calculate_dcf_intrinsic_value,
     analyze_revenue_growth,
 )
-from technical.analysis import analyze_technical
-from utils.data import load_tickers, get_financial_data
+from analysis.technical import analyze_technical
+from utils.lists import load_tickers, get_financial_data
+from utils.lists import portfolio_list, watchlist_list
 from utils.formatting import print_results, print_summary_table, flatten_result
-from utils.database import save_scores
-from utils.cache import enable_cache
-from utils.config import get_weights
-
-warnings.filterwarnings("ignore")
-
+from utils.scores_db import save_scores
+from utils.config import enable_cache, get_weights
 
 def _compute_score(eps, roe, fcf, bal, div, dcf, rev=None):
     """Compute weighted fundamental score from sub-scores."""
@@ -48,7 +44,6 @@ def _compute_score(eps, roe, fcf, bal, div, dcf, rev=None):
         + rev_score * w.get("revenue", 0),
         1,
     )
-
 
 def screen_stock(ticker_symbol, index, total):
     """Screen a single stock against all fundamental criteria."""
@@ -88,14 +83,15 @@ def screen_stock(ticker_symbol, index, total):
         "fundamental_score": total_score,
     }
 
-
-def main():
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
     # Parse flags
     export_csv = False
     export_xlsx = False
     summary_only = False
     remaining_args = []
-    for arg in sys.argv[1:]:
+    for arg in args:
         if arg == "--csv":
             export_csv = True
         elif arg in ("--xlsx", "--excel"):
@@ -112,11 +108,17 @@ def main():
         else:
             candidates = [t.upper().strip() for t in remaining_args if t.strip()]
     else:
-        candidates = load_tickers()
+        # Default: combined portfolio + watchlist (deduplicated, order preserved)
+        seen = set()
+        candidates = []
+        for t in portfolio_list() + watchlist_list():
+            if t not in seen:
+                seen.add(t)
+                candidates.append(t)
 
     # Interactive prompt if no tickers were resolved
     if not candidates:
-        print("No tickers found in tickers.txt or command line.")
+        print("No tickers in portfolio or watchlist.")
         raw = input("Enter ticker(s) to analyze (comma or space separated): ").strip()
         if not raw:
             print("No tickers entered. Exiting.")
@@ -165,7 +167,6 @@ def main():
     if export_xlsx:
         from utils.export import export_excel
         export_excel(results)
-
 
 if __name__ == "__main__":
     main()
